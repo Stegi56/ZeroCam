@@ -7,7 +7,6 @@ use env_logger;
 async fn main(){
   env_logger::init();
 
-  let gdClient = Files::GDConnector::GDClient::new().await.unwrap();
-  let fileList = gdClient.getFileList().await.unwrap();
-  println!("GD FileList {:?}", fileList.iter().map(|f| f.name.clone().unwrap_or_default()).collect::<Vec<String>>())
+  let gdController = Files::GDController::GDController::new().await.unwrap();
+  gdController.uploadClipsAndClearLocal().await;
 }
