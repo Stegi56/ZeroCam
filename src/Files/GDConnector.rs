@@ -4,16 +4,20 @@ extern crate google_drive3 as drive3;
 use std::io::{Bytes, Cursor};
 use drive3::{Result, Error};
 use drive3::{DriveHub, hyper_rustls, hyper_util, yup_oauth2};
+use google_drive3::api::FileDeleteCall;
 use google_drive3::common::Response;
 use google_drive3::hyper_rustls::HttpsConnector;
 use log::{debug, info};
+use mime_guess::{from_path, Mime};
+use std::path::Path;
+use chrono::{DateTime, Utc};
 
 pub struct GDClient {
   hub: DriveHub<HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>>
 }
 
 impl GDClient {
-  pub async fn new() ->  core::result::Result<GDClient, Error>{
+  pub async fn new() -> core::result::Result<GDClient, Error>{
     let secret = yup_oauth2::read_application_secret("secret.json")
       .await
       .expect("secret.json");
@@ -52,9 +56,6 @@ impl GDClient {
       .await?;
 
     let fileList: Vec<google_drive3::api::File> = res.1.files.unwrap_or_default();
-
-    info!("Got file list");
-    debug!("GetFileList {:?}", fileList.iter().map(|f| f.name.clone().unwrap_or_default()).collect::<Vec<String>>());
     Ok(fileList)
   }
 
@@ -66,7 +67,48 @@ impl GDClient {
       .create(newClipFolder)
       .param("fields", "name, mimeType")
       .add_scope("https://www.googleapis.com/auth/drive")
-      .upload(Cursor::new(Vec::<u8>::new()), "application/vnd.google-apps.folder".parse().unwrap())
+      .upload(Cursor::new(vec![]), "application/vnd.google-apps.folder".parse().unwrap())
+      .await?;
+    Ok(res.0)
+  }
+
+  pub async fn getStorageQuota(&self) -> google_drive3::api::AboutStorageQuota{
+    let res = self.hub.about()
+      .get()
+      .param("fields", "storageQuota")
+      .add_scope("https://www.googleapis.com/auth/drive")
+      .doit()
+      .await
+      .unwrap();
+    res.1.storage_quota.unwrap()
+  }
+
+  pub async fn deleteFile(&self, file: drive3::api::File) -> Result<Response>{
+    self.hub.files()
+      .delete(file.id.unwrap().as_str())
+      .add_scope("https://www.googleapis.com/auth/drive")
+      .doit()
+      .await
+  }
+
+  pub async fn uploadFile(&self, filePath: String, fileName:String, parentID: String) -> Result<Response> {
+    let mimeType: Mime = mime_guess::from_path(filePath.clone()).first_or_octet_stream();
+
+    let file = drive3::api::File {
+      name: Some(fileName),
+      mime_type: Some(mimeType.to_string()),
+      parents: Some(vec![parentID]),
+      ..Default::default()
+    };
+
+    let file_content = tokio::fs::read(filePath)
+      .await?;
+
+    let res = self.hub.files()
+      .create(file)
+      .param("fields", "id, name, mimeType, parents")
+      .add_scope("https://www.googleapis.com/auth/drive")
+      .upload(Cursor::new(file_content), mimeType)
       .await?;
     Ok(res.0)
   }
