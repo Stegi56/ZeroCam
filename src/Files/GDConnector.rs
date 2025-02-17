@@ -80,7 +80,7 @@ impl GDClient {
       .doit()
       .await
       .unwrap();
-    res.1.storage_quota.unwrap()
+    res.1.storage_quota.unwrap_or_else(|| panic!("Error getting storageQuota"))
   }
 
   pub async fn deleteFile(&self, file: drive3::api::File) -> Result<Response>{
