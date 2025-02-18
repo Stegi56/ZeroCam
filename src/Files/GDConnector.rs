@@ -4,7 +4,7 @@ extern crate google_drive3 as drive3;
 use std::io::{Bytes, Cursor};
 use drive3::{Result, Error};
 use drive3::{DriveHub, hyper_rustls, hyper_util, yup_oauth2};
-use google_drive3::api::FileDeleteCall;
+use google_drive3::api::{About, FileDeleteCall};
 use google_drive3::common::Response;
 use google_drive3::hyper_rustls::HttpsConnector;
 use log::{debug, info};
@@ -72,15 +72,13 @@ impl GDClient {
     Ok(res.0)
   }
 
-  pub async fn getStorageQuota(&self) -> google_drive3::api::AboutStorageQuota{
-    let res = self.hub.about()
+  pub async fn getAbout(&self) -> Result<(Response, About)>{
+    self.hub.about()
       .get()
       .param("fields", "storageQuota")
       .add_scope("https://www.googleapis.com/auth/drive")
       .doit()
       .await
-      .unwrap();
-    res.1.storage_quota.unwrap_or_else(|| panic!("Error getting storageQuota"))
   }
 
   pub async fn deleteFile(&self, file: drive3::api::File) -> Result<Response>{
@@ -92,7 +90,7 @@ impl GDClient {
   }
 
   pub async fn uploadFile(&self, filePath: String, fileName:String, parentID: String) -> Result<Response> {
-    let mimeType: Mime = mime_guess::from_path(filePath.clone()).first_or_octet_stream();
+    let mimeType: Mime = from_path(filePath.clone()).first_or_octet_stream();
 
     let file = drive3::api::File {
       name: Some(fileName),
