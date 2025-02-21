@@ -49,7 +49,7 @@ impl GDController{
     debug!("Local files in GD: {:?}", localFileListInGD);
 
     for file in localFileListInGD {
-      if let Err(e) = fs::remove_file("Clips/".to_string() + &file) {
+      if let Err(e) = fs::remove_file("../Clips/".to_string() + &file) {
         error!("Failed to delete '{}': {}", file, e);
       } else {
         info!("Deleted {} from local storage, already exists in GD", file);
@@ -66,16 +66,16 @@ impl GDController{
     debug!("Space Exists: {}", localFileListNotInGD.len());
 
     for file in localFileListNotInGD {
-      let fileSize:i64 = fs::metadata("Clips/".to_string() + &file).unwrap().len() as i64;
+      let fileSize:i64 = fs::metadata("../Clips/".to_string() + &file).unwrap().len() as i64;
 
       let clipsFolderID = gdFileList.iter().find(|f| f.name.clone().unwrap() == "ZeroCam Clips").unwrap().id.clone().unwrap();
       let mut someOldestGDFile:Option<google_drive3::api::File> = self.getOldestGDFile(&clipsFolderID).await?;
 
       if fileSize < self.calculateSpaceAvailable(&clipsFolderID).await? {
-        self.gdClient.uploadFile("Clips/".to_string() + file.clone().as_str(), file.clone(), clipsFolderID).await.unwrap_or_else(|e| panic!("Error: {}", e));
+        self.gdClient.uploadFile("../Clips/".to_string() + file.clone().as_str(), file.clone(), clipsFolderID).await.unwrap_or_else(|e| panic!("Error: {}", e));
         info!("Uploaded {} to GD", file);
 
-        if let Err(e) = fs::remove_file("Clips/".to_string() + file.clone().as_str()) {
+        if let Err(e) = fs::remove_file("../Clips/".to_string() + file.clone().as_str()) {
           error!("Failed to delete '{}': {}", file, e);
         } else {
           info!("Deleted {} from local storage", file);
@@ -93,10 +93,10 @@ impl GDController{
           someOldestGDFile = self.getOldestGDFile(&clipsFolderID).await?;
         }
 
-        self.gdClient.uploadFile("Clips/".to_string() + file.clone().as_str(), file.clone(), clipsFolderID).await?;
+        self.gdClient.uploadFile("../Clips/".to_string() + file.clone().as_str(), file.clone(), clipsFolderID).await?;
         info!("Uploaded {} to GD", file);
 
-        fs::remove_file("Clips/".to_string() + file.clone().as_str())?;
+        fs::remove_file("../Clips/".to_string() + file.clone().as_str())?;
         info!("Deleted {} from local storage", file);
       }
 
@@ -139,7 +139,7 @@ impl GDController{
   }
 
   fn getLocalFilesOldestFirst(&self) -> Result<Vec<String>, Box<dyn Error>> {
-    let mut files: Vec<_> = fs::read_dir("Clips")
+    let mut files: Vec<_> = fs::read_dir("../Clips/")
       .unwrap()
       .filter_map(|e| {
         let entry = e.ok()?;

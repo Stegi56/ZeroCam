@@ -18,7 +18,7 @@ pub struct GDClient {
 
 impl GDClient {
   pub async fn new() -> core::result::Result<GDClient, Error>{
-    let secret = yup_oauth2::read_application_secret("secret.json")
+    let secret = yup_oauth2::read_application_secret("../secret.json")
       .await
       .expect("secret.json");
 
@@ -26,7 +26,7 @@ impl GDClient {
       secret,
       yup_oauth2::InstalledFlowReturnMethod::HTTPRedirect,
     )
-      .persist_tokens_to_disk("token_cache.json")
+      .persist_tokens_to_disk("../tokenCache.json")
       .build()
       .await?;
 
