@@ -32,7 +32,7 @@ impl FileListener {
       }
     })?;
 
-    watcher.watch(Path::new("Clips/"), RecursiveMode::Recursive)?;
+    watcher.watch(Path::new("../Clips/"), RecursiveMode::Recursive)?;
     info!("File creation listener created");
     Ok(Self { _watcher: watcher })
   }
