@@ -1,7 +1,9 @@
 #![allow(non_snake_case)]
+mod Camera;
 mod Files;
 mod Net;
 
+use crate::Camera::CameraController::CameraController;
 use crate::Files::BackupScheduler::BackupScheduler;
 use crate::Files::FileListener::FileListener;
 use crate::Net::ConnectionListener::ConnectionListener;
@@ -18,14 +20,19 @@ async fn main(){
 
   let scheduler = Arc::new(BackupScheduler::new());
 
-  let fileListener = FileListener::new(scheduler.clone()).await.unwrap();
+  let _fileListener = FileListener::new(scheduler.clone()).await.unwrap();
   info!("File Listener running.");
 
-  let connectionlistener = ConnectionListener::new();
-  let connectionListenerHandle = tokio::spawn(async move {
-    connectionlistener.listen(scheduler).await;
+  let connectionListener = ConnectionListener::new();
+  let _connectionListenerHandle = tokio::spawn(async move {
+    connectionListener.listen(scheduler).await;
   });
   info!("Connection Listener running.");
+
+  let _recordingHandle = tokio::spawn(async move {
+    Camera::CameraController::startRecording().await.unwrap();
+  });
+  info!("Camera live! :D");
 
   zerocam_lib::run();
 

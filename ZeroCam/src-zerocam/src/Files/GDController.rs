@@ -12,7 +12,7 @@ pub struct GDController {
 }
 
 impl GDController {
-  pub async fn new() -> core::result::Result<GDController, Box<dyn Error>> {
+  pub async fn new() -> Result<GDController, Box<dyn Error>> {
     Ok(Self {
       gdClient: GDConnector::GDClient::new().await?,
       clipsPath: env::current_dir()?.parent().unwrap().parent().unwrap().join("Clips/").display().to_string()
