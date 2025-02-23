@@ -1,12 +1,20 @@
-use std::env;
+use std::{env, thread, time};
 use std::error::Error;
 use std::process::{Command, Stdio};
+use log::info;
 
 pub struct CameraController {}
 
 impl CameraController {
   pub fn new() -> Result<CameraController, Box<dyn Error>> {
     Ok(Self{})
+  }
+
+  pub fn clip(&self) -> Result<(), Box<dyn Error>> {
+    info!("Clipping...");
+    thread::sleep(time::Duration::from_secs(5));
+    info!("Clipped");
+    Ok(())
   }
 }
 
