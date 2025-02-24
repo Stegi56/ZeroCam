@@ -18,12 +18,10 @@ impl FileListener {
   pub async fn new(backupScheduler: Arc<BackupScheduler>) -> NotifyResult<Self> {
     let runtimeHandle = Handle::current();
 
-    let scheduler = backupScheduler.clone();
-
     let mut watcher = notify::recommended_watcher(move |res: NotifyResult<Event>| {
       match res {
         Ok(event) if matches!(event.kind, EventKind::Create(_)) => {
-          let scheduler = scheduler.clone();
+          let scheduler = backupScheduler.clone();
           runtimeHandle.spawn(async move {
             if let Err(e) = scheduler.scheduleBackup().await {
               error!("Backup failed: {}", e);

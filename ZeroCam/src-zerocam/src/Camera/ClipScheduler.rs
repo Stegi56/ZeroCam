@@ -2,6 +2,7 @@ use crate::Camera::CameraController;
 
 use log::{info, warn};
 use std::error::Error;
+use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -42,7 +43,7 @@ impl ClipScheduler {
     };
 
     let result = timeout(Duration::from_secs(10), async {
-      self.cameraController.clip()
+      self.cameraController.clip().await
     }).await??;
 
     info!("Clip completed successfully");

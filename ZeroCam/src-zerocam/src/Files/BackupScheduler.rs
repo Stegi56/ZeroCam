@@ -35,10 +35,10 @@ impl BackupScheduler {
     }
 
     let _guard = RunningGuard {
-      flag: Arc::clone(&self.isRunning),
+      flag: Arc::clone(&self.isRunning)
     };
 
-    let result = timeout(Duration::from_secs(10), async {
+    let result = timeout(Duration::from_secs(60), async {
       let mut controller = GDController::new().await?;
       controller.backupNow().await
     }).await??;
