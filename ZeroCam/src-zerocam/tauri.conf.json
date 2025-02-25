@@ -10,9 +10,9 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "zerocam",
-        "width": 800,
-        "height": 600
+        "title": "ZeroCam",
+        "width": 480,
+        "height": 320
       }
     ],
     "security": {

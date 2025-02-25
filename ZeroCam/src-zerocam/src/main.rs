@@ -1,12 +1,12 @@
 #![allow(non_snake_case)]
 mod Camera;
-mod Files;
+mod GDFiles;
 mod Net;
 
 use crate::Camera::ClipScheduler::ClipScheduler;
 use crate::Camera::CameraController::CameraController;
-use crate::Files::BackupScheduler::BackupScheduler;
-use crate::Files::FileListener::FileListener;
+use crate::GDFiles::BackupScheduler::BackupScheduler;
+use crate::GDFiles::FileListener::FileListener;
 use crate::Net::ConnectionListener::ConnectionListener;
 
 use std::error::Error;

@@ -6,7 +6,7 @@ use std::time::Duration;
 use tokio::runtime::Handle;
 use tokio::time::sleep;
 
-use crate::Files::BackupScheduler::BackupScheduler;
+use crate::GDFiles::BackupScheduler::BackupScheduler;
 
 pub struct ConnectionListener {
   isConnected: AtomicBool,

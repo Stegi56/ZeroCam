@@ -7,8 +7,8 @@ use std::sync::Arc;
 use tokio::runtime::Handle;
 use std::env;
 
-use crate::Files::BackupScheduler::BackupScheduler;
-use crate::Files::GDController::GDController;
+use crate::GDFiles::BackupScheduler::BackupScheduler;
+use crate::GDFiles::GDController::GDController;
 
 pub struct FileListener {
   _watcher: RecommendedWatcher,

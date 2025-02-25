@@ -1,4 +1,4 @@
-use crate::Files::GDConnector;
+use crate::GDFiles::GDConnector;
 use chrono::{DateTime, Duration, Utc};
 use google_drive3::api::File;
 use log::{debug, error, info};
@@ -64,7 +64,6 @@ impl GDController {
       .collect();
 
     debug!("Local files not int GD: {:?}", localFileListNotInGD);
-    debug!("Space Exists: {}", localFileListNotInGD.len());
 
     for file in localFileListNotInGD {
       let fileSize: i64 = fs::metadata(self.clipsPath.clone() + &file).unwrap().len() as i64;
@@ -132,12 +131,12 @@ impl GDController {
 
     let storageQuota = self.gdClient.getAbout().await?.1.storage_quota.unwrap();
     let freeGDSpace = storageQuota.limit.unwrap() - storageQuota.usage.unwrap();
-    let spaceAllowedByZeroCam: i64 = (1 * 1024 * 1024 * 1024) / 50; //1GB /50
+    let spaceAllowedByZeroCam: i64 = (1 * 1024 * 1024 * 1024); //1GB
     let freeZeroCamSpace = spaceAllowedByZeroCam - gdClipsList.iter().map(|f| f.size.unwrap()).sum::<i64>();
     let spaceAvailable = min(freeZeroCamSpace, freeGDSpace);
 
-    debug!("GD Space Available: {}", freeGDSpace);
-    debug!("ZeroCam Clips Folder Space Available: {}", freeZeroCamSpace);
+    debug!("GD Space Available: {:.3}GB", (freeGDSpace as f64) / ((1024 * 1024 * 1024) as f64));
+    debug!("GD ZeroCam Clips Folder Space Available: {:.3}GB", ((freeZeroCamSpace as f64) / ((1024 * 1024 * 1024) as f64)));
     Ok(spaceAvailable)
   }
 
