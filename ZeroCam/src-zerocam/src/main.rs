@@ -33,7 +33,7 @@ async fn main(){
 
   let clipScheduler = Arc::new(zerocam_lib::ClipScheduler::new()); //zerocam_lib necessary as tauri gets confused
 
-  let _cameraProcess = Camera::CameraController::startRecording().await.unwrap();
+  let _cameraProcess = Camera::CameraController::startCameraAndStream().await.unwrap();
 
   info!("Camera live! :D");
 

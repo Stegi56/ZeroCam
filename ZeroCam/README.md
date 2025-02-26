@@ -35,6 +35,9 @@
   ```bash 
     sudo apt install ffmpeg
   ```
+- ### Install MediaMTX into zerocam folder (for streaming)
+  - https://github.com/bluenviron/mediamtx/releases
+  - rename folder to "MediaMTX"
 
 ## Run
 - ```bash
