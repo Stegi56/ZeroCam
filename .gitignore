@@ -26,3 +26,6 @@ dist-ssr
 /Cargo.lock
 /target/
 /tokenCache.json
+/package-lock.json
+/LiveRecording/
+/mediamtx_v1.11.3_linux_amd64/
