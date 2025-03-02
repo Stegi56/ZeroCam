@@ -38,7 +38,15 @@
 - ### Install MediaMTX into zerocam folder (for streaming)
   - https://github.com/bluenviron/mediamtx/releases
   - rename folder to "MediaMTX"
-
+-Setup Telegram Bot
+  - On Telegram search "BotFather"
+  - Start
+  - ```/newbot```
+  - ```ZeroCam```
+  - give the bot a unique name
+  - Copy the HTTP API token eg. 7805646492:AAEfzYJXfaeS9giXfPC1Dwy9efVBHFrGIdA
+  - Save the new bot in your telegram eg. t.me/ZeroCam02032025bot
+  - Save the key to telegramKey.txt inside the ZeroCam folder
 ## Run
 - ```bash
     cargo run  
