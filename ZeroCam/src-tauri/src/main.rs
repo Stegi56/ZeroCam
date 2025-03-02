@@ -2,12 +2,14 @@
 mod Camera;
 mod GDFiles;
 mod Net;
+mod Telegram;
 
 use crate::Camera::ClipScheduler::ClipScheduler;
 use crate::Camera::CameraController::CameraController;
 use crate::GDFiles::BackupScheduler::BackupScheduler;
 use crate::GDFiles::FileListener::FileListener;
 use crate::Net::ConnectionListener::ConnectionListener;
+use crate::Telegram::TelegramBot;
 
 use std::error::Error;
 use std::sync::Arc;
@@ -31,11 +33,15 @@ async fn main(){
   });
   info!("Connection Listener running.");
 
+  let _cameraProcess = Camera::CameraController::startCameraAndStream().await.unwrap();
+  info!("Camera live.");
+
   let clipScheduler = Arc::new(zerocam_lib::ClipScheduler::new()); //zerocam_lib necessary as tauri gets confused
 
-  let _cameraProcess = Camera::CameraController::startCameraAndStream().await.unwrap();
-
-  info!("Camera live! :D");
+  let _telegramBot = tokio::spawn(async move{
+    TelegramBot::newBot().await.unwrap();
+  });
+  info!("Telegram bot live.");
 
   zerocam_lib::run(clipScheduler.clone());
 

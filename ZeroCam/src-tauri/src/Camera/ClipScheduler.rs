@@ -9,17 +9,16 @@ use std::time::Duration;
 use tokio::time::timeout;
 
 pub struct ClipScheduler {
-  isRunning: Arc<AtomicBool>,
   cameraController: CameraController::CameraController,
 }
 
-struct RunningGuard {
-  flag: Arc<AtomicBool>,
-}
+static IS_RUNNING: AtomicBool = AtomicBool::new(false);
+
+struct RunningGuard;
 
 impl Drop for RunningGuard {
   fn drop(&mut self) {
-    self.flag.store(false, Ordering::SeqCst);
+    IS_RUNNING.store(false, Ordering::SeqCst);
   }
 }
 
@@ -27,20 +26,22 @@ impl Drop for RunningGuard {
 impl ClipScheduler {
   pub fn new() -> Self {
     Self {
-      isRunning: Arc::new(AtomicBool::new(false)),
       cameraController: CameraController::CameraController::new().unwrap(),
     }
   }
 
   pub async fn scheduleClip(&self) -> Result<(), Box<dyn Error>> {
-    if self.isRunning.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_err() {
+    if IS_RUNNING
+      .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+      .is_err()
+    {
       warn!("Clip process in progress - skipping this request");
       return Ok(());
     }
 
-    let _guard = RunningGuard {
-      flag: Arc::clone(&self.isRunning),
-    };
+    info!("------>isRunning: {}", IS_RUNNING.load(Ordering::SeqCst));
+
+    let _guard = RunningGuard;
 
     let result = timeout(Duration::from_secs(10), async {
       self.cameraController.clip().await
