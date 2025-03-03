@@ -19,10 +19,12 @@ function App() {
     const video = videoRef.current;
     if (!video) return;
 
-    const hls = new Hls();
+    const hls = new Hls({
+      lowLatencyMode : true
+    });
 
     const loadStream = () => {
-      hls.loadSource("http://localhost:8888/live/mycamera/index.m3u8");
+      hls.loadSource("http://localhost:8888/stream1/index.m3u8");
       hls.attachMedia(video);
     };
 

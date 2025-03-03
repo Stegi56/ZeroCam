@@ -38,7 +38,24 @@
 - ### Install MediaMTX into zerocam folder (for streaming)
   - https://github.com/bluenviron/mediamtx/releases
   - rename folder to "MediaMTX"
--Setup Telegram Bot
+- ### (Option 1) Install playit.gg to prevent need for port forwarding for each wifi source
+  - Create https://playit.gg/ account and verify email (guest will not work)
+  - ```bash
+    wget https://github.com/playit-cloud/playit-agent/releases/download/v0.15.0/playit-linux-amd64
+    chmod +x playit-linux-amd64
+    ./playit-linux-amd64
+    ```
+  - Click the link shown in terminal
+  - Click create tunnel and copy these settings
+  - Save the address
+- ### (Option 2 if you have an existing domain)
+  - Install cloudflared https://pkg.cloudflare.com/index.html
+  - https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/
+  - Set it up as shown
+  - ```bash 
+    cloudflared tunnel login
+    ```
+- ### Setup Telegram Bot
   - On Telegram search "BotFather"
   - Start
   - ```/newbot```
