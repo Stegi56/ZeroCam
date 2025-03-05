@@ -36,10 +36,8 @@ impl ClipScheduler {
       .is_err()
     {
       warn!("Clip process in progress - skipping this request");
-      return Ok(());
+      return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "There is already a clip in progress - skipping this request")));
     }
-
-    info!("------>isRunning: {}", IS_RUNNING.load(Ordering::SeqCst));
 
     let _guard = RunningGuard;
 
