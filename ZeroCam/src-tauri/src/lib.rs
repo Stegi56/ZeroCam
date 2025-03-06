@@ -1,10 +1,10 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #![allow(non_snake_case)]
 mod Camera;
+mod Config;
 
 pub use crate::Camera::ClipScheduler::ClipScheduler;
 use std::sync::Arc;
-use log::info;
 
 #[tauri::command]
 async fn feScheduleClip(state: tauri::State<'_, Arc<ClipScheduler>>) -> Result<(), String> {

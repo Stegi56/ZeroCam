@@ -1,8 +1,9 @@
-use std::arch::x86_64::_bittest;
 use std::env;
 use std::error::Error;
 use std::sync::Arc;
 use teloxide::{prelude::*, utils::command::BotCommands};
+use crate::Config;
+use crate::Config::ConfigFile;
 
 #[derive(BotCommands, Clone)]
 #[command(rename_rule = "lowercase", description = "These commands are supported:")]
@@ -17,14 +18,14 @@ enum Command {
 
 
 pub async fn newBot() -> Result<(), Box<dyn Error>> {
-  let botKeyPath = env::current_dir()?.parent().unwrap().parent().unwrap().join("telegramKey.txt").display().to_string();
-  let bot = Bot::new(std::fs::read_to_string(botKeyPath)?);
+  let key = Config::getConfig().await?.telegram_key;
+  let bot = Bot::new(key);
   Command::repl(bot, answer).await;
   Ok(())
 }
 
 async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
-  let clipScheduler = Arc::new(zerocam_lib::ClipScheduler::new());
+  let clipScheduler = Arc::new(zerocam_lib::ClipScheduler::new().await);
   match cmd {
     Command::Start => bot.send_message(msg.chat.id, Command::descriptions().to_string()).await?,
     Command::Clip => {
@@ -33,7 +34,12 @@ async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
         .is_ok() { bot.send_message(msg.chat.id, "Clip successful, should be visible in google drive soon...").await?
         } else { bot.send_message(msg.chat.id, "Failed to make clip, one is likely already in progress").await? }
     },
-    Command::Stream => bot.send_message(msg.chat.id, "Click link to view stream: https://zerocam.stegi56.com/stream1/ \nUsername: zerocamuser").await?,
+    Command::Stream => {
+      let config:ConfigFile = Config::getConfig().await.unwrap();
+      let streamUrl = config.internet_stream_output.url;
+      let username = config.internet_stream_output.username;
+      bot.send_message(msg.chat.id, format!("Click link to view stream: {} \nUsername: {}", streamUrl, username)).await?
+    },
   };
 
   Ok(())

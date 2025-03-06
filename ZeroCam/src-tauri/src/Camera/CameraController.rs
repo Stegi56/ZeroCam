@@ -6,51 +6,54 @@ use thread::sleep;
 use sysinfo::Disks;
 use chrono::Utc;
 use log::{debug, info};
+use serde_yaml::Value;
 use tokio::fs::DirEntry;
+use crate::Config::ConfigFile;
+use crate::Config;
 
 pub struct CameraController {
   recordingSegmentsPath : String,
   recordingPathsFilePath: String, // a file that stores the paths of files inside  LiveRecordings directory
   clipsPath             : String,
+  config                : ConfigFile,
 }
 
 impl CameraController {
-  pub fn new() -> Result<CameraController, Box<dyn Error>> {
+  pub async fn new() -> Result<CameraController, Box<dyn Error>> {
     Ok(Self{
       recordingSegmentsPath : env::current_dir()?.parent().unwrap().parent().unwrap().join("LiveRecording/").display().to_string(),
       recordingPathsFilePath: env::current_dir()?.parent().unwrap().parent().unwrap().join("recordingPaths.txt").display().to_string(),
       clipsPath             : env::current_dir()?.parent().unwrap().parent().unwrap().join("Clips/").display().to_string(),
+      config                : Config::getConfig().await?
     })
   }
 
   pub async fn clip(&self) -> Result<(), Box<dyn Error>> {
     const GB: i64 = 1024 * 1024 * 1024;
-    fn getDiskSafeSpaceB() -> i64 {
+    fn getDiskSafeSpaceB(availableSpaceLimit: i64) -> i64 {
       Disks::new_with_refreshed_list()
         .list()[0]
         .available_space() as i64
         // - (GB * 319) // comment outside test case
-        - GB         // never allow system to have less than 1GB available space for stability
+        - availableSpaceLimit // never allow system to have less than 1GB available space for stability
     }
 
     info!("Clip scheduled, waiting for timer...");
-    sleep(time::Duration::from_secs(10));
+    sleep(time::Duration::from_secs(self.config.camera_input.clip.timer_before_clip_sec));
 
     let outputSizeB:i64 = self.makePathsForWritingFileAndGetOutputSize().await?;
     info!("Clip outputSize: {:.0}MB", (outputSizeB as f64) / (1024.0 * 1024.0));
 
-    //we can take 0 item as this reads /proc/mounts which is in creation order
-    //meaning 0 contains file system root.
     //this assumes the dashcam is not running multiple drives and if it is the app is deployed on
     //the root file system
-    let mut diskSafeSpaceB:i64 = getDiskSafeSpaceB();
+    let mut diskSafeSpaceB:i64 = getDiskSafeSpaceB(self.config.camera_input.clip.disk_full_buffer_gb.clone() * GB);
     info!("Safe disk space: {:.3}GB", (diskSafeSpaceB as f64) / (1024.0 * 1024.0 * 1024.0));
     while outputSizeB > diskSafeSpaceB {
       let oldestClipPath= self.getOldestLocalClip()?;
       fs::remove_file(&oldestClipPath)?;
       info!("Deleted oldest clip: {}", oldestClipPath.display());
       sleep(time::Duration::from_secs(2)); //allow kernel time to finish deleting
-      diskSafeSpaceB = getDiskSafeSpaceB();
+      diskSafeSpaceB = getDiskSafeSpaceB(self.config.camera_input.clip.disk_full_buffer_gb.clone() * GB);
     }
 
 
@@ -58,9 +61,9 @@ impl CameraController {
     info!("Concatenating recordings to {}", &newFileName);
     Command::new("ffmpeg")
       .stdin(Stdio::null())
-      .arg("-f").arg("concat") //input existing files
-      .arg("-safe").arg("0") //disables safety to allow full path use
-      .arg("-i").arg(self.recordingPathsFilePath.clone()) //input list of files to be concatenated
+      .arg("-f"   ).arg("concat"                           ) //input existing files
+      .arg("-safe").arg("0"                                ) //disables safety to allow full path use
+      .arg("-i"   ).arg(self.recordingPathsFilePath.clone()) //input list of files to be concatenated
       .arg("-c").arg("copy")
       .arg(newFileName)
       .spawn().unwrap();
@@ -111,6 +114,7 @@ impl CameraController {
 }
 
 pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
+  let config = Config::getConfig().await?;
   let liveRecordingPath = env::current_dir()?.parent().unwrap().parent().unwrap().join("LiveRecording/").display().to_string();
 
   fs::remove_dir_all(&liveRecordingPath)?;
@@ -120,7 +124,7 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
   let mediamtxLocalConfPath = env::current_dir()?.parent().unwrap().parent().unwrap().join("MediaMTX/mediamtx-local.yml").display().to_string();
   let mediamtxInternetConfPath = env::current_dir()?.parent().unwrap().parent().unwrap().join("MediaMTX/mediamtx-internet.yml").display().to_string();
 
-  Command::new(&mediamtxPath)
+    Command::new(&mediamtxPath)
     .stdout(Stdio::null()) //peace
     .stderr(Stdio::null()) //and quiet :)
     .arg(mediamtxLocalConfPath)
@@ -136,14 +140,14 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
     .stdout(Stdio::null()) //peace
     .stderr(Stdio::null()) //and quiet :))
     //Input
-    .arg("-f")           .arg("v4l2"       ) //input format video 4 linux
-    .arg("-input_format").arg("mjpeg"      ) //pixel format
-    .arg("-framerate")   .arg("25"         )
-    .arg("-video_size")  .arg("1920x1080"  )
-    .arg("-i")           .arg("/dev/video0") //input source
-    .arg("-pix_fmt")      .arg("yuv420p"    ) //prevent deprecated pixel format
+    .arg("-f")           .arg("v4l2"                        ) //input format video 4 linux
+    .arg("-input_format").arg("mjpeg"                       ) //pixel format
+    .arg("-framerate")   .arg(config.camera_input.fps       )
+    .arg("-video_size")  .arg(config.camera_input.resolution)
+    .arg("-i")           .arg("/dev/video0"                 ) //input source
+    .arg("-pix_fmt")     .arg("yuv420p"                     ) //prevent deprecated pixel format
     //Output 1 for  storage
-    .arg("-f")               .arg("segment"           ) //output in segments
+    .arg("-f")               .arg("segment"               ) //output in segments
     .arg("-c:v")             .arg("libx264"               ) //h.264 encoder
     .arg("-preset")          .arg("ultrafast"             ) //compression algorithm speed (faster = lower quality)
     .arg("-crf")             .arg("17"                    ) //loss parameter (lower = less loss)
@@ -154,23 +158,23 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
     .arg("-segment_wrap")    .arg("10"                    ) //loop after x segments
     .arg(format!("{}output%03d.ts", liveRecordingPath)    ) //output in numbered files
     //Output 2 for local stream to GUI
-    .arg("-f")        .arg("rtsp"             ) // RTSP container
-    .arg("-c:v")      .arg("libx264"          ) // h.264 encoder
-    .arg("-tune")     .arg("zerolatency"      ) // Optimise for streaming
-    .arg("-preset")   .arg("ultrafast"        ) // Keep latency low
-    .arg("-s")        .arg("1280x720"         ) // Lower resolution for streaming
-    .arg("-b:v")      .arg("400k"             ) // Lower bitrate for streaming
-    .arg("-r")        .arg("15"               ) // framerate
-    .arg("rtsp://localhost:8554/stream1"      ) // RTMP stream to local MediaMTX
+    .arg("-f")        .arg("rtsp"                             ) // RTSP container
+    .arg("-c:v")      .arg("libx264"                          ) // h.264 encoder
+    .arg("-tune")     .arg("zerolatency"                      ) // Optimise for streaming
+    .arg("-preset")   .arg("ultrafast"                        ) // Keep latency low
+    .arg("-s")        .arg(config.gui_stream_output.resolution)
+    .arg("-b:v")      .arg(config.gui_stream_output.bit_rate  )
+    .arg("-r")        .arg(config.gui_stream_output.fps       )
+    .arg("rtsp://localhost:8554/stream1"                      ) // RTMP stream to local MediaMTX
     //Output 3 for local stream to Internet
-    .arg("-f")        .arg("rtsp"             ) // RTSP container
-    .arg("-c:v")      .arg("libx264"          ) // h.264 encoder
-    .arg("-tune")     .arg("film"             ) // Optimise for lower deblocking
-    .arg("-preset")   .arg("ultrafast"        ) // Keep latency low
-    .arg("-s")        .arg("1920x1080"        ) // Lower resolution for streaming
-    .arg("-b:v")      .arg("800k"             ) // Lower bitrate for streaming
-    .arg("-r")        .arg("15"               ) // framerate
-    .arg("rtsp://localhost:8555/stream1"      ) // RTMP stream to local MediaMTX
+    .arg("-f")        .arg("rtsp"                                  ) // RTSP container
+    .arg("-c:v")      .arg("libx264"                               ) // h.264 encoder
+    .arg("-tune")     .arg("film"                                  ) // Optimise for lower deblocking
+    .arg("-preset")   .arg("ultrafast"                             ) // Keep latency low
+    .arg("-s")        .arg(config.internet_stream_output.resolution)
+    .arg("-b:v")      .arg(config.internet_stream_output.bit_rate  )
+    .arg("-r")        .arg(config.internet_stream_output.fps       )
+    .arg("rtsp://localhost:8555/stream1"                           ) // RTMP stream to local MediaMTX
     .spawn()?;
   Ok(())
 }

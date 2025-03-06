@@ -3,6 +3,7 @@ mod Camera;
 mod GDFiles;
 mod Net;
 mod Telegram;
+mod Config;
 
 use crate::Camera::ClipScheduler::ClipScheduler;
 use crate::Camera::CameraController::CameraController;
@@ -22,7 +23,9 @@ async fn main(){
   env_logger::init();
   rustls::crypto::ring::default_provider().install_default().unwrap();
 
-  let backupScheduler = Arc::new(BackupScheduler::new());
+  Config::showConfig().await;
+
+  let backupScheduler = Arc::new(BackupScheduler::new().await.unwrap());
 
   let _fileListener = FileListener::new(backupScheduler.clone()).await.unwrap();
   info!("File Listener running.");
@@ -36,7 +39,7 @@ async fn main(){
   let _cameraProcess = Camera::CameraController::startCameraAndStream().await.unwrap();
   info!("Camera live.");
 
-  let clipScheduler = Arc::new(zerocam_lib::ClipScheduler::new()); //zerocam_lib necessary as tauri gets confused
+  let clipScheduler = Arc::new(zerocam_lib::ClipScheduler::new().await); //zerocam_lib necessary as tauri gets confused
 
   let _telegramBot = tokio::spawn(async move{
     TelegramBot::newBot().await.unwrap();

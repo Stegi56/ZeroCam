@@ -24,9 +24,9 @@ impl Drop for RunningGuard {
 
 /// This allows only 1 process to happen at any time and prevents any concurrent attempts
 impl ClipScheduler {
-  pub fn new() -> Self {
+  pub async fn new() -> Self {
     Self {
-      cameraController: CameraController::CameraController::new().unwrap(),
+      cameraController: CameraController::CameraController::new().await.unwrap(),
     }
   }
 
@@ -41,9 +41,7 @@ impl ClipScheduler {
 
     let _guard = RunningGuard;
 
-    let result = timeout(Duration::from_secs(10), async {
-      self.cameraController.clip().await
-    }).await??;
+    let result = self.cameraController.clip().await?;
 
     info!("Clip completed successfully");
     Ok(result)

@@ -14,7 +14,7 @@ use std::io::{Bytes, Cursor};
 use std::path::Path;
 
 pub struct GDClient {
-  hub           : DriveHub<HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>>
+  hub: DriveHub<HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>>
 }
 
 impl GDClient {

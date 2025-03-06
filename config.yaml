@@ -1,0 +1,28 @@
+telegram_key: 7805646492:AAEfzYJXfaeS9giXfPC1Dwy9efVBHFrGIdA
+  
+camera_input:
+  resolution: 1920x1080
+  fps: 25
+  clip:
+    segment_size_sec: 5
+    segments: 14
+    timer_before_clip_sec: 30
+    disk_full_buffer_gb: 3
+  
+gui_stream_output:
+  resolution: 1280x720
+  bit_rate: 400k
+  fps: 15
+  
+internet_stream_output:
+  url: https://zerocam.stegi56.com/stream1/
+  username: zerocamuser2
+  password: zerocam1
+  resolution: 1920x1080
+  bit_rate: 800k
+  fps: 15
+    
+g_cloud:
+  limit_gb: 1
+  backup_scheduler_timeout_sec: 90
+

@@ -5,13 +5,16 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::timeout;
+use crate::Config;
+use crate::Config::ConfigFile;
 
 pub struct BackupScheduler {
-  isRunning: Arc<AtomicBool>,
+  isRunning : Arc<AtomicBool>,
+  configFile: ConfigFile
 }
 
 struct RunningGuard {
-  flag: Arc<AtomicBool>,
+  flag: Arc<AtomicBool>
 }
 
 impl Drop for RunningGuard {
@@ -22,10 +25,11 @@ impl Drop for RunningGuard {
 
 /// This allows only 1 backup process to happen at any time and prevents any concurrent attempts
 impl BackupScheduler {
-  pub fn new() -> Self {
-    Self {
-      isRunning: Arc::new(AtomicBool::new(false)),
-    }
+  pub async fn new() -> Result<Self, Box<dyn Error>> {
+    Ok(Self {
+      isRunning : Arc::new(AtomicBool::new(false)),
+      configFile: Config::getConfig().await?
+    })
   }
 
   pub async fn scheduleBackup(&self) -> Result<(), Box<dyn Error>> {
@@ -38,7 +42,7 @@ impl BackupScheduler {
       flag: Arc::clone(&self.isRunning)
     };
 
-    let result = timeout(Duration::from_secs(60), async {
+    let result = timeout(Duration::from_secs(self.configFile.g_cloud.backup_scheduler_timeout_sec), async {
       let mut controller = GDController::new().await?;
       controller.backupNow().await
     }).await??;

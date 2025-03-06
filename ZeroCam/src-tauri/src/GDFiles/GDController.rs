@@ -6,16 +6,21 @@ use serde::ser::StdError;
 use std::cmp::min;
 use std::{env, error::Error, fs, io};
 
+use crate::Config;
+use crate::Config::ConfigFile;
+
 pub struct GDController {
-  gdClient: GDConnector::GDClient,
-  clipsPath: String
+  gdClient  : GDConnector::GDClient,
+  clipsPath : String,
+  configFile: ConfigFile,
 }
 
 impl GDController {
   pub async fn new() -> Result<GDController, Box<dyn Error>> {
     Ok(Self {
-      gdClient: GDConnector::GDClient::new().await?,
-      clipsPath: env::current_dir()?.parent().unwrap().parent().unwrap().join("Clips/").display().to_string()
+      gdClient  : GDConnector::GDClient::new().await?,
+      clipsPath : env::current_dir()?.parent().unwrap().parent().unwrap().join("Clips/").display().to_string(),
+      configFile: Config::getConfig().await?,
     })
   }
 
@@ -131,7 +136,7 @@ impl GDController {
 
     let storageQuota = self.gdClient.getAbout().await?.1.storage_quota.unwrap();
     let freeGDSpace = storageQuota.limit.unwrap() - storageQuota.usage.unwrap();
-    let spaceAllowedByZeroCam: i64 = (1 * 1024 * 1024 * 1024); //1GB
+    let spaceAllowedByZeroCam: i64 = self.configFile.g_cloud.limit_gb * 1024 * 1024 * 1024; //1GB
     let freeZeroCamSpace = spaceAllowedByZeroCam - gdClipsList.iter().map(|f| f.size.unwrap()).sum::<i64>();
     let spaceAvailable = min(freeZeroCamSpace, freeGDSpace);
 
