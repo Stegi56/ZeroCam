@@ -36,3 +36,5 @@ dist-ssr
 /server.crt
 /server.csr
 /mediamtx.log
+/Clips/*
+/CompVisPlayground/Cargo.lock

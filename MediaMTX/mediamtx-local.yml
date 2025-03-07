@@ -327,14 +327,14 @@ hlsSegmentDuration: 1s
 hlsPartDuration: 200ms
 # Maximum size of each segment.
 # This prevents RAM exhaustion.
-hlsSegmentMaxSize: 50M
+hlsSegmentMaxSize: 5M
 # Directory in which to save segments, instead of keeping them in the RAM.
 # This decreases performance, since reading from disk is less performant than
 # reading from RAM, but allows to save RAM.
 hlsDirectory: ''
 # The muxer will be closed when there are no
 # reader requests and this amount of time has passed.
-hlsMuxerCloseAfter: 60s
+hlsMuxerCloseAfter: 30s
 
 ###############################################
 # Global settings -> WebRTC server

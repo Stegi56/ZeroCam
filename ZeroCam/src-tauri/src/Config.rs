@@ -1,3 +1,4 @@
+use std::error::Error;
 use log::info;
 use serde::Deserialize;
 
@@ -5,6 +6,7 @@ use serde::Deserialize;
 pub struct ConfigFile {
   pub telegram_key          : String,
   pub camera_input          : CameraInput,
+  pub motion_listener       : MotionListener,
   pub gui_stream_output     : GUIStreamOutput,
   pub internet_stream_output: InternetStreamOutput,
   pub g_cloud               : GCloud
@@ -23,6 +25,14 @@ pub struct Clip {
   pub segments             : String,
   pub timer_before_clip_sec: u64,
   pub disk_full_buffer_gb  : i64
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MotionListener {
+  pub sensitivity_inverse : f64,
+  pub threshold_sum_kilo  : f64,
+  pub frame_delay_millisec: u64,
+  pub trigger_duration    : i8
 }
 
 #[derive(Debug, Deserialize)]
@@ -48,7 +58,7 @@ pub struct GCloud {
   pub backup_scheduler_timeout_sec: u64,
 }
 
-pub async fn getConfig() -> Result<ConfigFile, Box<dyn std::error::Error>> {
+pub async fn getConfig() -> Result<ConfigFile, Box<dyn Error>> {
   let yaml_str = std::fs::read_to_string("../../config.yaml")?;
   let config: ConfigFile = serde_yaml::from_str(&yaml_str)?;
   Ok(config)

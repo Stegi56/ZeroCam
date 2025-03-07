@@ -6,8 +6,8 @@ use serde::ser::StdError;
 use std::cmp::min;
 use std::{env, error::Error, fs, io};
 
-use crate::Config;
 use crate::Config::ConfigFile;
+use crate::Config;
 
 pub struct GDController {
   gdClient  : GDConnector::GDClient,

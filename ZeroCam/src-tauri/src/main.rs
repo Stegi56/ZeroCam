@@ -1,12 +1,13 @@
 #![allow(non_snake_case)]
-mod Camera;
+mod Config;
+pub mod Camera;
 mod GDFiles;
 mod Net;
 mod Telegram;
-mod Config;
 
 use crate::Camera::ClipScheduler::ClipScheduler;
 use crate::Camera::CameraController::CameraController;
+use crate::Camera::MotionListener::MotionListener;
 use crate::GDFiles::BackupScheduler::BackupScheduler;
 use crate::GDFiles::FileListener::FileListener;
 use crate::Net::ConnectionListener::ConnectionListener;
@@ -14,9 +15,13 @@ use crate::Telegram::TelegramBot;
 
 use std::error::Error;
 use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 use env_logger;
 use log::info;
-use tokio::signal;
+use tokio::{signal, task};
+use tokio::task::LocalSet;
+use tokio::time::sleep;
 
 #[tokio::main]
 async fn main(){
@@ -46,7 +51,12 @@ async fn main(){
   });
   info!("Telegram bot live.");
 
-  zerocam_lib::run(clipScheduler.clone());
+  let motionListener = zerocam_lib::MotionListener::new(clipScheduler.clone()).await.unwrap();
+  let _motionListenerProcess = tokio::spawn(async move{
+    motionListener.run().await;
+  });
+
+  zerocam_lib::run(clipScheduler);
 
   signal::ctrl_c()
     .await

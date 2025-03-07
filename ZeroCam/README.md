@@ -35,6 +35,10 @@
   ```bash 
     sudo apt install ffmpeg
   ```
+- ### Install ffmpeg loopback
+  - https://docs.omnissa.com/bundle/LinuxDesktops-and-Applications-in-HorizonV2306/page/InstalltheV4L2LoopbackDriver.html
+- ### Disable password for sudo actions
+  - https://askubuntu.com/questions/147241/execute-sudo-without-password
 - ### Install MediaMTX into zerocam folder (for streaming)
   - https://github.com/bluenviron/mediamtx/releases
   - rename folder to "MediaMTX"
@@ -64,6 +68,14 @@
   - Copy the HTTP API token eg. 7805646492:AAEfzYJXfaeS9giXfPC1Dwy9efVBHFrGIdA
   - Save the new bot in your telegram eg. t.me/ZeroCam02032025bot
   - Save the key to telegramKey.txt inside the ZeroCam folder
+- ### Install opencv4
+  - https://docs.opencv.org/4.x/d7/d9f/tutorial_linux_install.html
+- ### Install other open cv dependencies
+  - https://github.com/twistedfall/opencv-rust/blob/master/INSTALL.md
+- ### Install libsdl2-2.0-0
+  - ```bash
+    sudo apt-get install libsdl2-2.0-0
+  ```
 ## Run
 - ```bash
     cargo run  
