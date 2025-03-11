@@ -4,7 +4,8 @@ mod Camera;
 mod Config;
 
 pub use crate::Camera::ClipScheduler::ClipScheduler;
-use std::sync::Arc;
+use std::sync::{Arc};
+pub use crate::Camera::MotionListener::MotionListener;
 
 #[tauri::command]
 async fn feScheduleClip(state: tauri::State<'_, Arc<ClipScheduler>>) -> Result<(), String> {
@@ -14,10 +15,20 @@ async fn feScheduleClip(state: tauri::State<'_, Arc<ClipScheduler>>) -> Result<(
     .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn startWatching() {
+  Camera::MotionListener::startWatching();
+}
+
+#[tauri::command]
+fn stopWatching() {
+  Camera::MotionListener::stopWatching();
+}
+
 pub fn run(clipScheduler:Arc<ClipScheduler>) {
   tauri::Builder::default()
     .manage(clipScheduler)
-    .invoke_handler(tauri::generate_handler![feScheduleClip])
+    .invoke_handler(tauri::generate_handler![feScheduleClip, startWatching, stopWatching])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

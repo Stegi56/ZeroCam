@@ -1,3 +1,6 @@
+use crate::Config::ConfigFile;
+use crate::Config;
+
 use std::{env, fs, thread, time};
 use std::error::Error;
 use std::path::PathBuf;
@@ -8,8 +11,6 @@ use chrono::Utc;
 use log::{debug, info};
 use serde_yaml::Value;
 use tokio::fs::DirEntry;
-use crate::Config::ConfigFile;
-use crate::Config;
 
 pub struct CameraController {
   recordingSegmentsPath : String,
@@ -124,48 +125,72 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
   let mediamtxLocalConfPath = env::current_dir()?.parent().unwrap().parent().unwrap().join("MediaMTX/mediamtx-local.yml").display().to_string();
   let mediamtxInternetConfPath = env::current_dir()?.parent().unwrap().parent().unwrap().join("MediaMTX/mediamtx-internet.yml").display().to_string();
 
-    Command::new(&mediamtxPath)
+  Command::new(&mediamtxPath) //start localhost stream
     .stdout(Stdio::null()) //peace
     .stderr(Stdio::null()) //and quiet :)
     .arg(mediamtxLocalConfPath)
     .spawn()?;
 
-  Command::new(&mediamtxPath)
+  Command::new(&mediamtxPath) //start internet stream with security
     .stdout(Stdio::null()) //peace
     .stderr(Stdio::null()) //and quiet :)
     .arg(mediamtxInternetConfPath)
     .spawn()?;
 
+  Command::new("sudo")
+    .stdout(Stdio::null())//peace
+    .stderr(Stdio::null())//and quiet :)
+    .arg("modprobe")
+    .arg("v4l2loopback")
+    .arg("devices=2") //create virtual devices for loopback
+    .spawn()?;
+
+  Command::new("ffmpeg")
+    .stdout(Stdio::null()) //peace
+    .stderr(Stdio::null()) //and quiet :))
+    //Duplicate camera to dummy devices so opencv can use it too
+    .arg("-f")         .arg("video4linux2"                 ) //input format video 4 linux
+    .arg("-framerate") .arg(config.camera_input.fps        )
+    .arg("-video_size").arg(&config.camera_input.resolution)
+    .arg("-i")         .arg("/dev/video0"                  ) //read original source
+    .arg("-codec")     .arg("copy"                         )
+    .arg("-f")         .arg("v4l2"                         ) //input format video 4 linux
+    .arg("/dev/video2"                                     ) //duplicate to video1
+    .arg("-codec")     .arg("copy"                         )
+    .arg("-f")         .arg("v4l2"                         ) //input format video 4 linux
+    .arg("/dev/video3"                                     ) // duplicate to video2
+    .spawn()?;
+
+  sleep(time::Duration::from_secs(3)); //wait for loopback to init
+
   Command::new("ffmpeg")
     .stdout(Stdio::null()) //peace
     .stderr(Stdio::null()) //and quiet :))
     //Input
-    .arg("-f")           .arg("v4l2"                        ) //input format video 4 linux
-    .arg("-input_format").arg("mjpeg"                       ) //pixel format
-    .arg("-framerate")   .arg(config.camera_input.fps       )
-    .arg("-video_size")  .arg(config.camera_input.resolution)
-    .arg("-i")           .arg("/dev/video0"                 ) //input source
-    .arg("-pix_fmt")     .arg("yuv420p"                     ) //prevent deprecated pixel format
+    .arg("-f")           .arg("v4l2"       ) //input format video 4 linux
+    .arg("-i")           .arg("/dev/video2") //input source
+    .arg("-pix_fmt")     .arg("yuv420p"    ) //prevent deprecated pixel format
     //Output 1 for  storage
-    .arg("-f")               .arg("segment"               ) //output in segments
-    .arg("-c:v")             .arg("libx264"               ) //h.264 encoder
-    .arg("-preset")          .arg("ultrafast"             ) //compression algorithm speed (faster = lower quality)
-    .arg("-crf")             .arg("17"                    ) //loss parameter (lower = less loss)
-    .arg("-tune")            .arg("film"                  ) //optimise to lower deblocking
-    .arg("-force_key_frames").arg("expr:gte(t,n_forced*5)") //force key frames every x seconds for splitting
-    .arg("-reset_timestamps").arg("1"                     ) //prevent corruption of timestamps when loop recording
-    .arg("-segment_time")    .arg("5"                     ) //x seconds per segment
-    .arg("-segment_wrap")    .arg("10"                    ) //loop after x segments
-    .arg(format!("{}output%03d.ts", liveRecordingPath)    ) //output in numbered files
+    .arg("-f")               .arg("segment"                                 ) //output in segments
+    .arg("-c:v")             .arg("libx264"                                 ) //h.264 encoder
+    .arg("-preset")          .arg("ultrafast"                               ) //compression algorithm speed (faster = lower quality)
+    .arg("-crf")             .arg("17"                                      ) //loss parameter (lower = less loss)
+    .arg("-tune")            .arg("film"                                    ) //optimise to lower deblocking
+    .arg("-force_key_frames").arg(format!("expr:gte(t,n_forced*{})"
+                                , config.camera_input.clip.segment_size_sec)) //force key frames every x seconds for splitting
+    .arg("-reset_timestamps").arg("1"                                       ) //prevent corruption of timestamps when loop recording
+    .arg("-segment_time")    .arg(config.camera_input.clip.segment_size_sec ) //x seconds per segment
+    .arg("-segment_wrap")    .arg(config.camera_input.clip.segments         ) //loop after x segments
+    .arg(format!("{}output%03d.ts", liveRecordingPath)                      ) //output in numbered files
     //Output 2 for local stream to GUI
-    .arg("-f")        .arg("rtsp"                             ) // RTSP container
-    .arg("-c:v")      .arg("libx264"                          ) // h.264 encoder
-    .arg("-tune")     .arg("zerolatency"                      ) // Optimise for streaming
-    .arg("-preset")   .arg("ultrafast"                        ) // Keep latency low
-    .arg("-s")        .arg(config.gui_stream_output.resolution)
-    .arg("-b:v")      .arg(config.gui_stream_output.bit_rate  )
-    .arg("-r")        .arg(config.gui_stream_output.fps       )
-    .arg("rtsp://localhost:8554/stream1"                      ) // RTMP stream to local MediaMTX
+    .arg("-f")          .arg("rtsp"                             ) // RTSP container
+    .arg("-c:v")        .arg("libx264"                          ) // h.264 encoder
+    .arg("-tune")       .arg("zerolatency"                      ) // Optimise for streaming
+    .arg("-preset")     .arg("ultrafast"                        ) // Keep latency low
+    .arg("-s")          .arg(config.gui_stream_output.resolution)
+    .arg("-b:v")        .arg(config.gui_stream_output.bit_rate  )
+    .arg("-r")          .arg(config.gui_stream_output.fps       )
+    .arg("rtsp://localhost:8554/stream1"                        ) // RTMP stream to local MediaMTX
     //Output 3 for local stream to Internet
     .arg("-f")        .arg("rtsp"                                  ) // RTSP container
     .arg("-c:v")      .arg("libx264"                               ) // h.264 encoder

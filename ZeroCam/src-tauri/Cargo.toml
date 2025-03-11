@@ -37,3 +37,4 @@ notify = "8.0"
 rustls = "0.23"
 sysinfo = "0.33"
 teloxide = { version = "0.13", features = ["macros"] }
+opencv = { version = "0.94.1", features = ["videoio"] }

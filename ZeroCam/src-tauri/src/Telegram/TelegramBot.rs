@@ -2,8 +2,8 @@ use std::env;
 use std::error::Error;
 use std::sync::Arc;
 use teloxide::{prelude::*, utils::command::BotCommands};
-use crate::Config;
 use crate::Config::ConfigFile;
+use crate::Config;
 
 #[derive(BotCommands, Clone)]
 #[command(rename_rule = "lowercase", description = "These commands are supported:")]
