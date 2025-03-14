@@ -24,6 +24,7 @@ pub struct Clip {
   pub segment_size_sec     : String,
   pub segments             : String,
   pub timer_before_clip_sec: u64,
+  pub cooldown_sec         : i64,
   pub disk_full_buffer_gb  : i64
 }
 

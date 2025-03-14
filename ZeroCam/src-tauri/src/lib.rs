@@ -16,19 +16,14 @@ async fn feScheduleClip(state: tauri::State<'_, Arc<ClipScheduler>>) -> Result<(
 }
 
 #[tauri::command]
-fn startWatching() {
-  Camera::MotionListener::startWatching();
-}
-
-#[tauri::command]
-fn stopWatching() {
-  Camera::MotionListener::stopWatching();
+fn feSetParked(parked: bool) {
+  Camera::MotionListener::setWatching(parked);
 }
 
 pub fn run(clipScheduler:Arc<ClipScheduler>) {
   tauri::Builder::default()
     .manage(clipScheduler)
-    .invoke_handler(tauri::generate_handler![feScheduleClip, startWatching, stopWatching])
+    .invoke_handler(tauri::generate_handler![feScheduleClip, feSetParked])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

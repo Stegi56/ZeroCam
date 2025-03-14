@@ -62,6 +62,8 @@ impl CameraController {
     info!("Concatenating recordings to {}", &newFileName);
     Command::new("ffmpeg")
       .stdin(Stdio::null())
+      .stdout(Stdio::null()) //peace
+      .stderr(Stdio::null()) //and quiet :))
       .arg("-f"   ).arg("concat"                           ) //input existing files
       .arg("-safe").arg("0"                                ) //disables safety to allow full path use
       .arg("-i"   ).arg(self.recordingPathsFilePath.clone()) //input list of files to be concatenated
