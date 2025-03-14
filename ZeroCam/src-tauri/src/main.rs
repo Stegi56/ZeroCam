@@ -21,7 +21,6 @@ use env_logger;
 use log::info;
 use tokio::{signal, task};
 use tokio::task::LocalSet;
-use tokio::time::sleep;
 
 #[tokio::main]
 async fn main(){

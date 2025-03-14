@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI8, Ordering};
 use std::thread;
 use std::time::Duration;
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use opencv::{prelude::*, videoio::{
   CAP_PROP_BUFFERSIZE,
   CAP_PROP_FPS,
@@ -28,7 +28,7 @@ use opencv::{prelude::*, videoio::{
 }, highgui::{
   wait_key,
 }};
-use tokio::time::sleep;
+use thread::sleep;
 use crate::Camera::ClipScheduler::ClipScheduler;
 
 static WATCHING : AtomicBool = AtomicBool::new(true);
@@ -36,17 +36,15 @@ static TRIGGERED: AtomicBool = AtomicBool::new(false);
 static DURATION : AtomicI8   = AtomicI8::new(0);
 
 pub struct MotionListener {
-  clipScheduler : Arc<ClipScheduler>,
-  config        : ConfigFile,
-  streamUrl     : String
+  clipScheduler: Arc<ClipScheduler>,
+  config       : ConfigFile
 }
 
 impl MotionListener {
   pub async fn new(clipScheduler: Arc<ClipScheduler>) -> Result<MotionListener, Box<dyn Error>> {
     Ok(Self{
-      clipScheduler : clipScheduler,
-      config        : Config::getConfig().await?,
-      streamUrl     : String::from("http://localhost:8888/stream1/index.m3u8")
+      clipScheduler: clipScheduler,
+      config       : Config::getConfig().await?
     })
   }
 
@@ -69,7 +67,6 @@ impl MotionListener {
 
     let mut frame = Mat::default();
     loop{
-      sleep(Duration::from_millis(400)).await;
       if WATCHING.load(Ordering::SeqCst) {
         sleep(Duration::from_millis(self.config.motion_listener.frame_delay_millisec));
         cap.read(&mut frame).unwrap();
@@ -110,22 +107,19 @@ impl MotionListener {
             if !TRIGGERED.load(Ordering::Relaxed){
               TRIGGERED.store(true, Ordering::Relaxed);
               info!("Motion sensor: TRIGGERED");
-              self.clipScheduler.scheduleClip().await.unwrap();
+              if self.clipScheduler.scheduleClip().await.is_err(){warn!{"Motion sensor clip cooldown overlap!"}}
             }
           }
         }
         debug!("Motion Duration: {}", DURATION.load(Ordering::Relaxed));
+      }else{
+        sleep(Duration::from_secs(5));
       }
     }
   }
 }
 
-pub fn startWatching() {
-  WATCHING.store(true, Ordering::Relaxed);
-}
-
-pub fn stopWatching() {
-  WATCHING.store(false, Ordering::Relaxed);
-  TRIGGERED.store(false, Ordering::Relaxed);
-  DURATION.store(0, Ordering::Relaxed);
+pub fn setWatching(b: bool) {
+  WATCHING.store(b, Ordering::Relaxed);
+  info!("Motion Listener State: {}", b.to_string())
 }

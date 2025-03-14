@@ -13,6 +13,7 @@
     "windows": [
       {
         "title": "ZeroCam",
+        "fullscreen": false,
         "width": 800,
         "height": 480
       }

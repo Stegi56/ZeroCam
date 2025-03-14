@@ -7,13 +7,14 @@ camera_input:
     segment_size_sec: 5
     segments: 4
     timer_before_clip_sec: 5
+    cooldown_sec: 5000
     disk_full_buffer_gb: 3
 
 motion_listener:
   sensitivity_inverse: 50
   threshold_sum_kilo: 500
   frame_delay_millisec: 100
-  trigger_duration: 10
+  trigger_duration: 5
 
 gui_stream_output:
   resolution: 1280x720

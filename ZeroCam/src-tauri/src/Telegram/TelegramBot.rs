@@ -32,7 +32,7 @@ async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
       bot.send_message(msg.chat.id, "Attempting to make a clip...").await?;
       if clipScheduler.scheduleClip().await
         .is_ok() { bot.send_message(msg.chat.id, "Clip successful, should be visible in google drive soon...").await?
-        } else { bot.send_message(msg.chat.id, "Failed to make clip, one is likely already in progress").await? }
+        } else { bot.send_message(msg.chat.id, "Already in progress - try again later").await? }
     },
     Command::Stream => {
       let config:ConfigFile = Config::getConfig().await.unwrap();
