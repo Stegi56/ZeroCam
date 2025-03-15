@@ -1,12 +1,13 @@
+use crate::Config;
+use crate::Config::ConfigFile;
 use crate::GDFiles::GDController::GDController;
+
 use log::{info, warn};
 use std::error::Error;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::timeout;
-use crate::Config::ConfigFile;
-use crate::Config;
 
 pub struct BackupScheduler {
   isRunning : Arc<AtomicBool>,

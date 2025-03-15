@@ -1,6 +1,6 @@
-use std::error::Error;
 use log::info;
 use serde::Deserialize;
+use std::error::Error;
 
 #[derive(Debug, Deserialize)]
 pub struct ConfigFile {
@@ -9,7 +9,8 @@ pub struct ConfigFile {
   pub motion_listener       : MotionListener,
   pub gui_stream_output     : GUIStreamOutput,
   pub internet_stream_output: InternetStreamOutput,
-  pub g_cloud               : GCloud
+  pub g_cloud               : GCloud,
+  pub hotspot_networks      : Vec<String>
 }
 
 #[derive(Debug, Deserialize)]
@@ -63,6 +64,17 @@ pub async fn getConfig() -> Result<ConfigFile, Box<dyn Error>> {
   let yaml_str = std::fs::read_to_string("../../config.yaml")?;
   let config: ConfigFile = serde_yaml::from_str(&yaml_str)?;
   Ok(config)
+}
+
+pub async fn getConfigAsString() -> Result<String, Box<dyn Error>> {
+  let yaml_str = std::fs::read_to_string("../../config.yaml")?;
+  Ok(yaml_str)
+}
+
+pub fn setConfigFromString(configString: String) -> Result<(), Box<dyn Error>> {
+  std::fs::write("../../config.yaml", configString)?;
+  info!("Updated config");
+  Ok(())
 }
 
 pub async fn showConfig() {

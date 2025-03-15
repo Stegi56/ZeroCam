@@ -1,31 +1,34 @@
 #![allow(non_snake_case)]
-mod Config;
 pub mod Camera;
+mod Config;
 mod GDFiles;
 mod Net;
 mod Telegram;
 
-use crate::Camera::ClipScheduler::ClipScheduler;
-use crate::Camera::CameraController::CameraController;
-use crate::Camera::MotionListener::MotionListener;
-use crate::GDFiles::BackupScheduler::BackupScheduler;
-use crate::GDFiles::FileListener::FileListener;
-use crate::Net::ConnectionListener::ConnectionListener;
+
+use zerocam_lib::Camera::CameraController::CameraController;
+use zerocam_lib::Camera::ClipScheduler::ClipScheduler;
+use zerocam_lib::Camera::MotionListener::MotionListener;
+use zerocam_lib::GDFiles::BackupScheduler::BackupScheduler;
+use zerocam_lib::GDFiles::FileListener::FileListener;
+use zerocam_lib::Net::ConnectionListener::listen;
 use crate::Telegram::TelegramBot;
 
+use env_logger;
+use log::info;
 use std::error::Error;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
-use env_logger;
-use log::info;
-use tokio::{signal, task};
 use tokio::task::LocalSet;
+use tokio::{signal, task};
 
 #[tokio::main]
-async fn main(){
+async fn main() {
   env_logger::init();
-  rustls::crypto::ring::default_provider().install_default().unwrap();
+  rustls::crypto::ring::default_provider()
+    .install_default()
+    .unwrap();
 
   Config::showConfig().await;
 
@@ -34,26 +37,30 @@ async fn main(){
   let _fileListener = FileListener::new(backupScheduler.clone()).await.unwrap();
   info!("File Listener running.");
 
-  let connectionListener = ConnectionListener::new();
   let _connectionListenerHandle = tokio::spawn(async move {
-    connectionListener.listen(backupScheduler).await;
+    listen(backupScheduler).await;
   });
   info!("Connection Listener running.");
 
-  let _cameraProcess = Camera::CameraController::startCameraAndStream().await.unwrap();
+  let _cameraProcess = Camera::CameraController::startCameraAndStream()
+    .await
+    .unwrap();
   info!("Camera live.");
 
-  let clipScheduler = Arc::new(zerocam_lib::ClipScheduler::new().await); //zerocam_lib necessary as tauri gets confused
+  let clipScheduler = Arc::new(ClipScheduler::new().await); //zerocam_lib necessary as tauri gets confused
 
-  let _telegramBot = tokio::spawn(async move{
+  let _telegramBot = tokio::spawn(async move {
     TelegramBot::newBot().await.unwrap();
   });
   info!("Telegram bot live.");
 
-  let motionListener = zerocam_lib::MotionListener::new(clipScheduler.clone()).await.unwrap();
-  let _motionListenerProcess = tokio::spawn(async move{
+  let motionListener = MotionListener::new(clipScheduler.clone())
+    .await
+    .unwrap();
+  let _motionListenerProcess = tokio::spawn(async move {
     motionListener.run().await;
   });
+  info!("Motion Listener running.");
 
   zerocam_lib::run(clipScheduler);
 

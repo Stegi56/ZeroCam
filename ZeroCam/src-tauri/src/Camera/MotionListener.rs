@@ -1,35 +1,24 @@
-use crate::Config::ConfigFile;
+use crate::Camera::ClipScheduler::ClipScheduler;
 use crate::Config;
+use crate::Config::ConfigFile;
 
+use log::{debug, error, info, warn};
+use opencv::{
+  core::{absdiff, sum_elems, Rect, Size, CV_8UC4},
+  highgui::wait_key,
+  imgproc::{
+    cvt_color, equalize_hist, gaussian_blur, threshold, ColorConversionCodes::COLOR_BGR2GRAY,
+    ThresholdTypes::THRESH_BINARY,
+  },
+  prelude::*,
+  videoio::{VideoCapture, CAP_ANY, CAP_PROP_BUFFERSIZE, CAP_PROP_FPS},
+};
 use std::error::Error;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicI8, Ordering};
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
-use log::{debug, error, info, warn};
-use opencv::{prelude::*, videoio::{
-  CAP_PROP_BUFFERSIZE,
-  CAP_PROP_FPS,
-  CAP_ANY,
-  VideoCapture
-}, core::{
-  Size,
-  sum_elems,
-  absdiff,
-  Rect,
-  CV_8UC4
-}, imgproc::{
-  ColorConversionCodes::COLOR_BGR2GRAY,
-  cvt_color,
-  equalize_hist,
-  gaussian_blur,
-  ThresholdTypes::THRESH_BINARY,
-  threshold
-}, highgui::{
-  wait_key,
-}};
 use thread::sleep;
-use crate::Camera::ClipScheduler::ClipScheduler;
 
 static WATCHING : AtomicBool = AtomicBool::new(true);
 static TRIGGERED: AtomicBool = AtomicBool::new(false);
@@ -119,7 +108,11 @@ impl MotionListener {
   }
 }
 
-pub fn setWatching(b: bool) {
+pub fn setParkedState(b: bool) {
   WATCHING.store(b, Ordering::Relaxed);
   info!("Motion Listener State: {}", b.to_string())
+}
+
+pub fn getParkedState() -> bool{
+  WATCHING.load(Ordering::Relaxed)
 }

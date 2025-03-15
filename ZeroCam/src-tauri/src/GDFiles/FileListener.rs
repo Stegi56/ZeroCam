@@ -1,14 +1,14 @@
+use crate::GDFiles::BackupScheduler::BackupScheduler;
+use crate::GDFiles::GDController::GDController;
+
 use log::{error, info};
 use notify::{
   Event, EventKind, RecommendedWatcher, RecursiveMode, Result as NotifyResult, Watcher,
 };
+use std::env;
 use std::path::Path;
 use std::sync::Arc;
 use tokio::runtime::Handle;
-use std::env;
-
-use crate::GDFiles::BackupScheduler::BackupScheduler;
-use crate::GDFiles::GDController::GDController;
 
 pub struct FileListener {
   _watcher: RecommendedWatcher,

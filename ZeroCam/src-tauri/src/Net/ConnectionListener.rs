@@ -1,54 +1,47 @@
+use crate::GDFiles::BackupScheduler::BackupScheduler;
+use crate::Net::NetworkConnector::ping_google;
+use crate::Net::NetworkController::{evaluateNetworkStateAndHandleChange, initialiseNetworkPriorities};
+use crate::Config::getConfig;
+
 use log::{debug, error, info};
 use std::net::IpAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::thread::sleep;
 use std::time::Duration;
 use tokio::runtime::Handle;
-use tokio::time::sleep;
 
-use crate::GDFiles::BackupScheduler::BackupScheduler;
+pub async fn listen(backupScheduler: Arc<BackupScheduler>) {
+  let runtimeHandle = Handle::current();
+  let scheduler = backupScheduler.clone();
+  let config = getConfig().await.unwrap();
 
-pub struct ConnectionListener {
-  isConnected: AtomicBool,
-}
+  let mut previousConnectionState = Vec::new();
+  let mut isConnected = false;
 
-impl ConnectionListener {
-  pub fn new() -> Self {
-    Self {
-      isConnected: AtomicBool::new(true)
-    }
-  }
+  initialiseNetworkPriorities(&config).await.unwrap();
 
-  pub async fn listen(&self, backupScheduler: Arc<BackupScheduler>) {
-    let runtimeHandle = Handle::current();
-    let scheduler = backupScheduler.clone();
+  loop {
+    sleep(Duration::from_secs(20));
+    let pingStatus: bool = ping_google().await;
 
-    loop {
-      sleep(Duration::from_secs(10)).await;
-      let pingStatus: bool = self.ping_google().await;
-      let currentStatus: bool = self.isConnected.load(Ordering::SeqCst);
+    previousConnectionState = evaluateNetworkStateAndHandleChange(previousConnectionState.clone(), &config).await
+      .unwrap_or_else(|_| Vec::new());
 
-      if currentStatus == false && pingStatus == true {
-        info!("Now online!");
-        self.isConnected.store(true, Ordering::SeqCst);
+    if isConnected == false && pingStatus == true {
+      info!("Now online!");
+      isConnected = true;
 
-        let scheduler = scheduler.clone();
-        runtimeHandle.spawn(async move {
-          if let Err(e) = scheduler.scheduleBackup().await {
-            error!("Backup failed: {}", e);
-          }
-        });
-      } else if currentStatus == true && pingStatus == false {
-        info!("Now offline!");
-        self.isConnected.store(false, Ordering::SeqCst);
-      }
-    }
-  }
-
-  async fn ping_google(&self) -> bool {
-    match tokio::net::TcpStream::connect("8.8.8.8:53").await {
-      Ok(_) => true,
-      Err(_) => false
+      let scheduler = scheduler.clone();
+      runtimeHandle.spawn(async move {
+        if let Err(e) = scheduler.scheduleBackup().await {
+          error!("Backup failed: {}", e);
+        }
+      });
+    } else if isConnected == true && pingStatus == false {
+      info!("Now offline!");
+      isConnected = false;
     }
   }
 }
+
