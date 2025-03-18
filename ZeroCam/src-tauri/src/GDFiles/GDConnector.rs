@@ -1,7 +1,6 @@
 extern crate google_drive3 as drive3;
 extern crate hyper;
 
-use std::env;
 use chrono::{DateTime, Utc};
 use drive3::{hyper_rustls, hyper_util, yup_oauth2, DriveHub};
 use drive3::{Error, Result};
@@ -10,6 +9,7 @@ use google_drive3::common::Response;
 use google_drive3::hyper_rustls::HttpsConnector;
 use log::{debug, info};
 use mime_guess::{from_path, Mime};
+use std::env;
 use std::io::{Bytes, Cursor};
 use std::path::Path;
 

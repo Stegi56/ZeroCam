@@ -1,15 +1,15 @@
-use crate::Config::ConfigFile;
 use crate::Config;
+use crate::Config::ConfigFile;
 
-use std::{env, fs, thread, time};
-use std::error::Error;
-use std::path::PathBuf;
-use std::process::{Command, Stdio};
-use thread::sleep;
-use sysinfo::Disks;
 use chrono::Utc;
 use log::{debug, info};
 use serde_yaml::Value;
+use std::error::Error;
+use std::path::PathBuf;
+use std::process::{Command, Stdio};
+use std::{env, fs, thread, time};
+use sysinfo::Disks;
+use thread::sleep;
 use tokio::fs::DirEntry;
 
 pub struct CameraController {
@@ -179,7 +179,7 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
     .arg("-crf")             .arg("17"                                      ) //loss parameter (lower = less loss)
     .arg("-tune")            .arg("film"                                    ) //optimise to lower deblocking
     .arg("-force_key_frames").arg(format!("expr:gte(t,n_forced*{})"
-                                , config.camera_input.clip.segment_size_sec)) //force key frames every x seconds for splitting
+                                          , config.camera_input.clip.segment_size_sec)) //force key frames every x seconds for splitting
     .arg("-reset_timestamps").arg("1"                                       ) //prevent corruption of timestamps when loop recording
     .arg("-segment_time")    .arg(config.camera_input.clip.segment_size_sec ) //x seconds per segment
     .arg("-segment_wrap")    .arg(config.camera_input.clip.segments         ) //loop after x segments

@@ -1,5 +1,5 @@
-import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import {invoke} from "@tauri-apps/api/core";
+import {getCurrentWindow} from "@tauri-apps/api/window";
 import "./global.css";
 import Hls from "hls.js"
 import {useEffect, useRef, useState} from "react";
@@ -7,7 +7,7 @@ import {Link} from "react-router-dom";
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  let [parked, setParked] = useState<boolean>(true)
+  let [parked, setParked] = useState<boolean>(false)
 
   function scheduleClip() {
     invoke('feScheduleClip');
@@ -22,6 +22,19 @@ function App() {
     const fullScreenState = await getCurrentWindow().isFullscreen()
     await getCurrentWindow().setFullscreen(!fullScreenState)
   }
+
+  useEffect(() => {
+    async function getParked() {
+      try {
+        setParked(await invoke('feGetParked'));
+      } catch (e){
+        console.error(e);
+      }
+    }
+    getParked();
+    const intervalId = setInterval(getParked, 2000);
+    return () => clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -88,15 +101,15 @@ function App() {
         </div>
 
       </div>
-      <div className="row my-auto d-flex align-items-center">
+      <div className="row my-auto me-0">
         <div className="col w-50">
           <div className="ratio ratio-16x9">
             <video ref={videoRef} id="video" className="object-fit-contain" autoPlay muted></video>
           </div>
         </div>
 
-        <div className="col ratio ratio-16x9 flex-column d-grid me-3">
-          <button type="button" className="btn btn-outline-light d-flex align-items-center justify-content-center" id="clip-button" onClick={scheduleClip}>
+        <div className="col ratio ratio-16x9 flex-column d-grid">
+          <button type="button" className="btn btn-outline-light me-0 d-flex align-items-center justify-content-center" id="clip-button" onClick={scheduleClip}>
             <span className="display-3">CLIP </span>
             <div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="bi bi-camera-video"

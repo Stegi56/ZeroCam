@@ -1,5 +1,4 @@
 telegram_key: 7805646492:AAEfzYJXfaeS9giXfPC1Dwy9efVBHFrGIdA
-  
 camera_input:
   resolution: 1920x1080
   fps: 25
@@ -9,18 +8,15 @@ camera_input:
     timer_before_clip_sec: 5
     cooldown_sec: 5000
     disk_full_buffer_gb: 3
-
 motion_listener:
   sensitivity_inverse: 50
   threshold_sum_kilo: 500
   frame_delay_millisec: 100
   trigger_duration: 5
-
 gui_stream_output:
   resolution: 1280x720
   bit_rate: 100k
   fps: 2
-  
 internet_stream_output:
   url: https://zerocam.stegi56.com/stream1/
   username: zerocamuser2
@@ -28,8 +24,8 @@ internet_stream_output:
   resolution: 1920x1080
   bit_rate: 800k
   fps: 15
-    
 g_cloud:
   limit_gb: 1
   backup_scheduler_timeout_sec: 90
-
+hotspot_networks:
+  - 5G COVID-19 tower
