@@ -4,10 +4,10 @@ camera_input:
   fps: 25
   clip:
     segment_size_sec: 5
-    segments: 4
-    timer_before_clip_sec: 5
-    cooldown_sec: 5000
-    disk_full_buffer_gb: 3
+    segments: 8
+    timer_before_clip_sec: 15
+    cooldown_sec: 20000
+    disk_full_buffer_gb: 4
 motion_listener:
   sensitivity_inverse: 50
   threshold_sum_kilo: 500
@@ -19,13 +19,13 @@ gui_stream_output:
   fps: 2
 internet_stream_output:
   url: https://zerocam.stegi56.com/stream1/
-  username: zerocamuser2
-  password: zerocam1
+  username: zerocamuser
+  password: zerocam
   resolution: 1920x1080
   bit_rate: 800k
   fps: 15
 g_cloud:
-  limit_gb: 1
+  limit_gb: 14
   backup_scheduler_timeout_sec: 90
 hotspot_networks:
   - 5G COVID-19 tower
