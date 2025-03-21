@@ -15,8 +15,8 @@ interface CameraInput {
 }
 
 interface Clip {
-  segment_size_sec     : string;
-  segments             : string;
+  segment_size_sec     : number;
+  segments             : number;
   timer_before_clip_sec: number;
   cooldown_sec         : number;
   disk_full_buffer_gb  : number;

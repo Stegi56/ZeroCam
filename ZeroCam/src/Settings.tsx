@@ -36,6 +36,20 @@ function Settings(){
       config.hotspot_networks = knownNetworks.filter(n =>
         (document.getElementById(`hotspot-checkbox-${n}`) as HTMLInputElement).checked
       )
+
+      config.g_cloud.limit_gb = Number(extractField("g_cloud.limit_gb"));
+
+      config.camera_input.clip.disk_full_buffer_gb = Number(extractField("camera_input.clip.disk_full_buffer_gb"));
+
+      config.motion_listener.sensitivity_inverse = Number(extractField("motion_listener.sensitivity_inverse"));
+      config.motion_listener.threshold_sum_kilo = Number(extractField("motion_listener.threshold_sum_kilo"));
+      config.motion_listener.frame_delay_millisec = Number(extractField("motion_listener.frame_delay_millisec"));
+      config.motion_listener.trigger_duration = Number(extractField("motion_listener.trigger_duration"));
+
+      config.camera_input.clip.segment_size_sec = Number(extractField("camera_input.clip.segment_size_sec"));
+      config.camera_input.clip.segments = Number(extractField("camera_input.clip.segments"));
+      config.camera_input.clip.timer_before_clip_sec = Number(extractField("camera_input.clip.timer_before_clip_sec"));
+      config.camera_input.clip.cooldown_sec = Number(extractField("camera_input.clip.cooldown_sec"));
     }
 
     const yamlContents = dump(config)
@@ -44,7 +58,14 @@ function Settings(){
     //invoke("feRebootSystem")
   }
 
-  function hotspotSelector() {
+  function extractField(fieldName: string): String{
+    let element = (document.getElementById(fieldName) as HTMLInputElement)
+    if(element.value == "")
+      return element.placeholder
+    else return element.value
+  }
+
+  function hotspotSettings() {
     return(
       <table id="known-networks-table" className="mt-0 pt-0 table table-striped">
         <thead><tr>
@@ -71,9 +92,155 @@ function Settings(){
     )
   }
 
-  return(
-    <main className="container-fluid pt-2">
-      <div className="row">
+  function gdriveSettings() {
+    return(
+      <table id="known-networks-table" className="mt-0 pt-0 table table-striped">
+        <tbody>
+          <tr>
+            <td className="col h3">
+              Storage Limit </td>
+            <td className="w-25">
+              <input className="form-control text-white" id="g_cloud.limit_gb"
+                placeholder={config?.g_cloud.limit_gb || ""}
+                defaultValue={config?.g_cloud.limit_gb || ""}
+              />
+            </td>
+            <td className="h3 w-25">GB</td>
+          </tr>
+        </tbody>
+      </table>
+    )
+  }
+
+  function localDriveSettings() {
+    return(
+      <table id="known-networks-table" className="mt-0 pt-0 table table-striped">
+        <tbody>
+          <tr>
+            <td className="col h3">
+              Storage Full Buffer </td>
+            <td className="w-25">
+              <input className="form-control text-white" id="camera_input.clip.disk_full_buffer_gb"
+                placeholder={config?.camera_input.clip.disk_full_buffer_gb || ""}
+                defaultValue={config?.camera_input.clip.disk_full_buffer_gb || ""}
+              />
+            </td>
+            <td className="h3 w-25">GB</td>
+          </tr>
+        </tbody>
+      </table>
+    )
+  }
+
+  function motionSensorSettings() {
+    return(
+      <table id="known-networks-table" className="mt-0 pt-0 table table-striped">
+        <tbody>
+          <tr>
+            <td className="col h3">
+              Sensitivity Inverse </td>
+            <td className="w-25">
+              <input className="form-control text-white" id="motion_listener.sensitivity_inverse"
+                placeholder={config?.motion_listener.sensitivity_inverse || ""}
+                defaultValue={config?.motion_listener.sensitivity_inverse || ""}
+              />
+            </td>
+            <td className="h3 w-25">0-255</td>
+          </tr>
+          <tr>
+            <td className="col h3">
+              Frame Difference Total </td>
+            <td className="w-25">
+              <input className="form-control text-white" id="motion_listener.threshold_sum_kilo"
+                placeholder={config?.motion_listener.threshold_sum_kilo || ""}
+                defaultValue={config?.motion_listener.threshold_sum_kilo || ""}
+              />
+            </td>
+            <td className="h3 w-25">0-4000</td>
+          </tr>
+          <tr>
+            <td className="col h3">
+              Delay between evaluating frames </td>
+            <td className="w-25">
+              <input className="form-control text-white" id="motion_listener.frame_delay_millisec"
+                placeholder={config?.motion_listener.frame_delay_millisec || ""}
+                defaultValue={config?.motion_listener.frame_delay_millisec || ""}
+              />
+            </td>
+            <td className="h3 w-25">milsec</td>
+          </tr>
+          <tr>
+            <td className="col h3">
+              Trigger Duration </td>
+            <td className="w-25">
+              <input className="form-control text-white" id="motion_listener.trigger_duration"
+                placeholder={config?.motion_listener.trigger_duration || ""}
+                defaultValue={config?.motion_listener.trigger_duration || ""}
+              />
+            </td>
+            <td className="h3 w-25">ticks</td>
+          </tr>
+        </tbody>
+      </table>
+    )
+  }
+
+  function videoSettings() {
+    return(
+      <table id="known-networks-table" className="mt-0 pt-0 table table-striped">
+        <tbody>
+        <tr>
+          <td className="col h3">
+            Segment Length </td>
+          <td className="w-25">
+            <input className="form-control text-white" id="camera_input.clip.segment_size_sec"
+              placeholder={config?.camera_input.clip.segment_size_sec || ""}
+              defaultValue={config?.camera_input.clip.segment_size_sec || ""}
+            />
+          </td>
+          <td className="h3 w-25">sec</td>
+        </tr>
+        <tr>
+          <td className="col h3">
+            Segments </td>
+          <td className="w-25">
+            <input className="form-control text-white" id="camera_input.clip.segments"
+              placeholder={config?.camera_input.clip.segments || ""}
+              defaultValue={config?.camera_input.clip.segments || ""}
+            />
+          </td>
+          <td className="h3 w-25"></td>
+        </tr>
+        <tr>
+          <td className="col h3">
+            Timer before clip </td>
+          <td className="w-25">
+            <input className="form-control text-white" id="camera_input.clip.timer_before_clip_sec"
+              placeholder={config?.camera_input.clip.timer_before_clip_sec || ""}
+              defaultValue={config?.camera_input.clip.timer_before_clip_sec || ""}
+            />
+          </td>
+          <td className="h3 w-25">sec</td>
+        </tr>
+        <tr>
+          <td className="col h3">
+            Clip cooldown </td>
+          <td className="w-25">
+            <input className="form-control text-white" id="camera_input.clip.cooldown_sec"
+              placeholder={config?.camera_input.clip.cooldown_sec || ""}
+              defaultValue={config?.camera_input.clip.cooldown_sec || ""}
+            />
+          </td>
+          <td className="h3 w-25">sec</td>
+        </tr>
+        </tbody>
+      </table>
+    )
+  }
+
+  return (
+    <body>
+      <nav className="row ps-3 pe-3 navbar bg-dark fixed-top">
         <div className="col">
           <Link to = {"/"}>
             <button type="button" id="return-button" className="btn btn-outline-light h-100 w-100">
@@ -123,12 +290,22 @@ function Settings(){
             </svg>
           </button>
         </div>
-      </div>
-      <div className="row ms-3 me-3">
-        <h1 className="ps-0 mt-3 display-6">Known Networks:</h1>
-        {hotspotSelector()}
-      </div>
-    </main>
+      </nav>
+      <main role="main" className="container-fluid" style={{paddingTop:"60px"}}>
+        <div className="row ms-3 me-3">
+          <h1 className="ps-0 mt-3 display-6">Known Networks:</h1>
+          {hotspotSettings()}
+          <h1 className="ps-0 mt-3 display-6">Google Drive:</h1>
+          {gdriveSettings()}
+          <h1 className="ps-0 mt-3 display-6">Local Drive:</h1>
+          {localDriveSettings()}
+          <h1 className="ps-0 mt-3 display-6">Motion Detection:</h1>
+          {motionSensorSettings()}
+          <h1 className="ps-0 mt-3 display-6">Video Capture:</h1>
+          {videoSettings()}
+        </div>
+      </main>
+    </body>
   )
 }
 
