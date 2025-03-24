@@ -60,16 +60,10 @@ authInternalUsers:
   - action: playback
     path:
   - action: publish
-    path:
+    path: stream1
   - action: api
     path:
-#- user: zerocamuser
-#  pass: "zerocam"
-#  ips: [] #remainder of ips
-#  permissions:
-#    - action: read
-#      path: stream1
-
+    
   # Default administrator.
   # This allows to use API, metrics and PPROF without authentication,
   # if the IP is localhost.
@@ -80,6 +74,8 @@ authInternalUsers:
   - action: api
   - action: metrics
   - action: pprof
+  - action: publish
+    path: stream1
 
 # HTTP-based authentication.
 # URL called to perform authentication. Every time a user wants
@@ -334,7 +330,7 @@ hlsSegmentMaxSize: 5M
 hlsDirectory: ''
 # The muxer will be closed when there are no
 # reader requests and this amount of time has passed.
-hlsMuxerCloseAfter: 30s
+hlsMuxerCloseAfter: 10s
 
 ###############################################
 # Global settings -> WebRTC server

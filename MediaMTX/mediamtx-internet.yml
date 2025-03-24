@@ -325,7 +325,7 @@ hlsSegmentMaxSize: 50M
 hlsDirectory: ''
 # The muxer will be closed when there are no
 # reader requests and this amount of time has passed.
-hlsMuxerCloseAfter: 60s
+hlsMuxerCloseAfter: 10s
 
 ###############################################
 # Global settings -> WebRTC server

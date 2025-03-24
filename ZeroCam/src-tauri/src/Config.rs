@@ -17,6 +17,7 @@ pub struct ConfigFile {
 pub struct CameraInput {
   pub resolution: String,
   pub fps       : String,
+  pub encoder   : String,
   pub clip      : Clip
 }
 
@@ -34,7 +35,10 @@ pub struct MotionListener {
   pub sensitivity_inverse : f64,
   pub threshold_sum_kilo  : f64,
   pub frame_delay_millisec: u64,
-  pub trigger_duration    : i8
+  pub trigger_duration    : i8,
+  pub resolution          : String,
+  pub bit_rate            : String,
+  pub fps                 : String
 }
 
 #[derive(Debug, Deserialize)]

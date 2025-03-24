@@ -19,6 +19,7 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 use thread::sleep;
+use opencv::imgproc::create_clahe;
 
 static WATCHING : AtomicBool = AtomicBool::new(true);
 static TRIGGERED: AtomicBool = AtomicBool::new(false);
@@ -38,20 +39,12 @@ impl MotionListener {
   }
 
   pub async fn run(self) {
+
     let mut cap = VideoCapture::new(3, CAP_ANY).unwrap();
     cap.set(CAP_PROP_BUFFERSIZE, 1.0).unwrap();
 
     let mut startFrame = Mat::default();
     cap.read(&mut startFrame).unwrap();
-
-    let mut startFrameGray = Mat::default();
-    cvt_color(&mut startFrame, &mut startFrameGray, COLOR_BGR2GRAY.into(),0).unwrap();
-
-    let mut startFrameBlurred = Mat::default();
-    gaussian_blur(&mut startFrameGray, &mut startFrameBlurred, Size::new(5, 5), 0., 0., 0.into()).unwrap();
-
-    let mut startFrameEqualized = Mat::default();
-    equalize_hist(&mut startFrameBlurred, &mut startFrameEqualized).unwrap();
 
 
     let mut frame = Mat::default();
@@ -60,25 +53,26 @@ impl MotionListener {
         sleep(Duration::from_millis(self.config.motion_listener.frame_delay_millisec));
         cap.read(&mut frame).unwrap();
 
-        let mut frameGray = Mat::default();
-        cvt_color(&mut frame, &mut frameGray, COLOR_BGR2GRAY.into(),0).unwrap();
+        sleep(Duration::from_millis(100));
+        cap.read(&mut frame).unwrap();
 
-        let mut frameBlurred = Mat::default();
-        gaussian_blur(&mut frameGray, &mut frameBlurred, Size::new(5, 5), 0., 0., 0.into()).unwrap();
+        let mut frameBlurred1 = Mat::default();
+        gaussian_blur(&mut frame, &mut frameBlurred1, Size::new(15, 15), 0., 0., 0.into()).unwrap();
 
-        let mut frameEqualized = Mat::default();
-        equalize_hist(&mut frameBlurred, &mut frameEqualized).unwrap();
+        let mut claheImg = Mat::default();
+        let clahe = create_clahe(15f64, Size::new(1, 1));
+        clahe.unwrap().apply(&mut frameBlurred1, &mut  claheImg).unwrap();
 
         let mut difference = Mat::default();
-        absdiff(&mut frameEqualized, &mut startFrameEqualized, &mut difference).unwrap();
+        absdiff(&mut claheImg, &mut startFrame, &mut difference).unwrap();
 
         let mut differenceBinned = Mat::default();
         threshold(&mut difference, &mut differenceBinned, self.config.motion_listener.sensitivity_inverse, 255f64, THRESH_BINARY.into()).unwrap();
 
         let differenceTotal: f64 = sum_elems(&mut differenceBinned.clone()).unwrap().iter().sum();
-        debug!("Motion in frame total: {}", differenceTotal);
+        info!("Difference Total: {}", differenceTotal);
 
-        startFrameEqualized = frameEqualized;
+        startFrame = claheImg;
 
         if differenceTotal < (self.config.motion_listener.threshold_sum_kilo * 1000.0){
           if DURATION.load(Ordering::Relaxed) > 0{

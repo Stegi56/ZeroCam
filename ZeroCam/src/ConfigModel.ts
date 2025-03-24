@@ -11,6 +11,7 @@ export interface Config {
 interface CameraInput {
   resolution: string;
   fps       : string;
+  encoder   : string;
   clip      : Clip;
 }
 
@@ -27,6 +28,9 @@ interface MotionListener {
   threshold_sum_kilo  : number;
   frame_delay_millisec: number;
   trigger_duration    : number;
+  resolution          : string;
+  bit_rate            : string;
+  fps                 : string;
 }
 
 interface GUIStreamOutput {

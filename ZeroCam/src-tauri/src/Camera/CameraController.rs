@@ -149,17 +149,23 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
     .stdout(Stdio::null()) //peace
     .stderr(Stdio::null()) //and quiet :))
     // Duplicate camera to dummy devices so opencv can use it too
-    .arg("-f")             .arg("video4linux2"                 ) // demuxer format v4l2
+    .arg("-threads")        .arg("4")
+    .arg("-f")             .arg("v4l2"                         ) // demuxer format v4l2
     .arg("-input_format")  .arg("mjpeg"                        )
     .arg("-framerate")     .arg(config.camera_input.fps        )
     .arg("-video_size")    .arg(&config.camera_input.resolution)
     .arg("-i")             .arg("/dev/video0"                  ) // read original source
-    .arg("-filter_complex").arg("split=2[original][scaled];[scaled]scale=640:360:flags=fast_bilinear[downscaled]") // Create two video outputs from one input
-    .arg("-map")           .arg("[original]"                   )
     .arg("-pix_fmt")       .arg("yuv420p"                      ) // prevent deprecated pixel format
+    .arg("-preset")        .arg("ultrafast"                    ) //compression algorithm speed (faster = lower quality)
+    .arg("-crf")           .arg("25"                           ) //loss parameter (lower = less loss)
+    .arg("-filter_complex").arg("split=2[v1][v2]") // Create two video outputs from one input
+    .arg("-map")           .arg("[v1]"                         )
     .arg("-f").arg("v4l2") .arg("/dev/video2"                  )
-    .arg("-map")           .arg("[downscaled]"                 )
-    .arg("-pix_fmt")       .arg("yuyv422"                      ) //set format supported by opencv
+    .arg("-map")           .arg("[v2]"                         )
+    .arg("-pix_fmt")       .arg("gray"                         ) //set format supported by opencv
+    .arg("-s")             .arg(&config.motion_listener.resolution)
+    .arg("-b:v")           .arg(&config.motion_listener.bit_rate  )
+    .arg("-r")             .arg(&config.motion_listener.fps       )
     .arg("-f").arg("v4l2") .arg("/dev/video3"                  )
     .spawn()?;
 
@@ -169,16 +175,11 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
     .stdout(Stdio::null()) //peace
     .stderr(Stdio::null()) //and quiet :))
     //Input
-    // .arg("-threads")     .arg("4"          )
+    .arg("-threads")     .arg("4"          )
     .arg("-f")           .arg("v4l2"       ) //demuxer format v4l2
     .arg("-i")           .arg("/dev/video2") //input source
-    .arg("-pix_fmt")     .arg("yuv420p"    ) //prevent deprecated pixel format
-    //Output 1 for  storage
+    //Output for  storage
     .arg("-f")               .arg("segment"                                 ) //output in segments
-    .arg("-c:v")             .arg("libx264"                                 ) //h.264 encoder
-    .arg("-preset")          .arg("ultrafast"                               ) //compression algorithm speed (faster = lower quality)
-    .arg("-crf")             .arg("17"                                      ) //loss parameter (lower = less loss)
-    .arg("-tune")            .arg("film"                                    ) //optimise to lower deblocking
     .arg("-force_key_frames").arg(format!("expr:gte(t,n_forced*{})"
                                           , config.camera_input.clip.segment_size_sec)) //force key frames every x seconds for splitting
     .arg("-reset_timestamps").arg("1"                                       ) //prevent corruption of timestamps when loop recording
@@ -190,22 +191,22 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
   Command::new("ffmpeg")
     .stdout(Stdio::null()) //peace
     .stderr(Stdio::null()) //and quiet :))
+    .arg("-threads")     .arg("4"          )
     .arg("-f")           .arg("v4l2"       ) //demuxer format v4l2
     .arg("-i")           .arg("/dev/video2") //input source
-    .arg("-pix_fmt")     .arg("yuv420p"    ) //prevent deprecated pixel format
-    //Output 2 for local stream to GUI
+    //Output for local stream to GUI
     .arg("-f")          .arg("rtsp"                             ) // RTSP container
-    .arg("-c:v")        .arg("libx264"                          ) // h.264 encoder
-    .arg("-tune")       .arg("zerolatency"                      ) // Optimise for streaming
+    .arg("-c:v")        .arg(&config.camera_input.encoder       ) // h.264 encoder
+    .arg("-tune")       .arg("fastdecode"                       ) // Optimise for streaming
     .arg("-preset")     .arg("ultrafast"                        ) // Keep latency low
     .arg("-s")          .arg(config.gui_stream_output.resolution)
     .arg("-b:v")        .arg(config.gui_stream_output.bit_rate  )
     .arg("-r")          .arg(config.gui_stream_output.fps       )
     .arg("rtsp://localhost:8554/stream1"                        ) // RTMP stream to local MediaMTX
-    //Output 3 for local stream to Internet
+    //Output for local stream to Internet
     .arg("-f")        .arg("rtsp"                                  ) // RTSP container
-    .arg("-c:v")      .arg("libx264"                          ) // h.264 encoder with gpu
-    .arg("-tune")     .arg("film"                                  ) // Optimise for lower deblocking
+    .arg("-c:v")      .arg(&config.camera_input.encoder            ) // h.264 encoder with gpu
+    .arg("-tune")     .arg("fastdecode"                            ) // Optimise for streaming
     .arg("-preset")   .arg("ultrafast"                             ) // Keep latency low
     .arg("-s")        .arg(config.internet_stream_output.resolution)
     .arg("-b:v")      .arg(config.internet_stream_output.bit_rate  )

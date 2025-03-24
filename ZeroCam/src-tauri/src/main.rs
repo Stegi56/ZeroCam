@@ -56,10 +56,11 @@ async fn main() {
   let motionListener = MotionListener::new(clipScheduler.clone())
     .await
     .unwrap();
-  // let _motionListenerProcess = tokio::spawn(async move {
-  //   motionListener.run().await;
-  // });
-  // info!("Motion Listener running.");
+
+  let _motionListenerProcess = tokio::spawn(async move {
+    motionListener.run().await;
+  });
+  info!("Motion Listener running.");
 
   zerocam_lib::run(clipScheduler);
 
