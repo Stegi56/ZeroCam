@@ -2,16 +2,16 @@ use crate::Camera::ClipScheduler::ClipScheduler;
 use crate::Config;
 use crate::Config::ConfigFile;
 
-use log::{debug, error, info, warn};
+use log::{debug, info, warn};
 use opencv::{
-  core::{absdiff, sum_elems, Rect, Size, CV_8UC4},
+  core::{absdiff, sum_elems, Size},
   highgui::wait_key,
   imgproc::{
     cvt_color, equalize_hist, gaussian_blur, threshold, ColorConversionCodes::COLOR_BGR2GRAY,
     ThresholdTypes::THRESH_BINARY,
   },
   prelude::*,
-  videoio::{VideoCapture, CAP_ANY, CAP_PROP_BUFFERSIZE, CAP_PROP_FPS},
+  videoio::{VideoCapture, CAP_ANY, CAP_PROP_BUFFERSIZE},
 };
 use std::error::Error;
 use std::sync::atomic::{AtomicBool, AtomicI8, Ordering};
@@ -64,7 +64,7 @@ impl MotionListener {
         cvt_color(&mut frame, &mut frameGray, COLOR_BGR2GRAY.into(),0).unwrap();
 
         let mut frameBlurred = Mat::default();
-        gaussian_blur(&mut frameGray, &mut frameBlurred, Size::new(3, 3), 0., 0., 0.into()).unwrap();
+        gaussian_blur(&mut frameGray, &mut frameBlurred, Size::new(5, 5), 0., 0., 0.into()).unwrap();
 
         let mut frameEqualized = Mat::default();
         equalize_hist(&mut frameBlurred, &mut frameEqualized).unwrap();

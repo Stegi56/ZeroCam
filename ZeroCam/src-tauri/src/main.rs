@@ -5,7 +5,6 @@ mod GDFiles;
 mod Net;
 mod Telegram;
 
-
 use zerocam_lib::Camera::CameraController::CameraController;
 use zerocam_lib::Camera::ClipScheduler::ClipScheduler;
 use zerocam_lib::Camera::MotionListener::MotionListener;
@@ -57,10 +56,10 @@ async fn main() {
   let motionListener = MotionListener::new(clipScheduler.clone())
     .await
     .unwrap();
-  let _motionListenerProcess = tokio::spawn(async move {
-    motionListener.run().await;
-  });
-  info!("Motion Listener running.");
+  // let _motionListenerProcess = tokio::spawn(async move {
+  //   motionListener.run().await;
+  // });
+  // info!("Motion Listener running.");
 
   zerocam_lib::run(clipScheduler);
 

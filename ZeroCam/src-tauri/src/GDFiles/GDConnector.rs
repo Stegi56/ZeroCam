@@ -1,17 +1,14 @@
 extern crate google_drive3 as drive3;
-extern crate hyper;
 
-use chrono::{DateTime, Utc};
 use drive3::{hyper_rustls, hyper_util, yup_oauth2, DriveHub};
 use drive3::{Error, Result};
-use google_drive3::api::{About, FileDeleteCall};
+use google_drive3::api::{About};
 use google_drive3::common::Response;
 use google_drive3::hyper_rustls::HttpsConnector;
-use log::{debug, info};
+use log::{info};
 use mime_guess::{from_path, Mime};
 use std::env;
-use std::io::{Bytes, Cursor};
-use std::path::Path;
+use std::io::{Cursor};
 
 pub struct GDClient {
   hub: DriveHub<HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>>
@@ -36,7 +33,7 @@ impl GDClient {
           .with_native_roots()?
           .https_or_http()
           .enable_http2()
-          .build(),
+          .build()
       );
 
     info!("Google Drive client created");
@@ -50,6 +47,7 @@ impl GDClient {
     let res = self.hub.files()
       .list()
       .q("trashed = false")
+      .order_by("name")
       .param("fields", "files(id, name, createdTime, size, mimeType, parents)")
       .add_scope("https://www.googleapis.com/auth/drive")
       .doit()
@@ -89,7 +87,7 @@ impl GDClient {
       .await
   }
 
-  pub async fn uploadFile(&self, filePath: String, fileName:String, parentID: String) -> Result<Response> {
+  pub async fn uploadFile(&self, filePath: String, fileName: String, parentID: String) -> Result<Response> {
     let mimeType: Mime = from_path(filePath.clone()).first_or_octet_stream();
 
     let file = drive3::api::File {

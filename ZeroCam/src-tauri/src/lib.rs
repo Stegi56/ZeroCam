@@ -11,7 +11,7 @@ pub use crate::Net::NetworkConnector::getKnownNetworks;
 pub use crate::Config::getConfigAsString;
 pub use crate::Config::setConfigFromString;
 
-use log::{debug, error, info, warn};
+use log::{error};
 use std::process::Command;
 use std::sync::{Arc, OnceLock};
 

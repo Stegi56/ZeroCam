@@ -2,12 +2,9 @@ use crate::Config;
 use crate::Config::ConfigFile;
 use crate::GDFiles::GDConnector;
 
-use chrono::{DateTime, Duration, Utc};
-use google_drive3::api::File;
-use log::{debug, error, info};
-use serde::ser::StdError;
-use std::cmp::min;
-use std::{env, error::Error, fs, io};
+use log::{debug, info};
+use std::cmp::{min, Reverse};
+use std::{env, error::Error, fs};
 
 pub struct GDController {
   gdClient  : GDConnector::GDClient,
@@ -26,7 +23,7 @@ impl GDController {
 
   pub async fn backupNow(&self) -> Result<(), Box<dyn Error>> {
     self.checkClipFolderExistsAndFix().await?;
-    self.uploadClipsAndClearLocal().await?;
+    self.uploadClips().await?;
     Ok(())
   }
 
@@ -40,91 +37,54 @@ impl GDController {
     Ok(())
   }
 
-  pub async fn uploadClipsAndClearLocal(&self) -> Result<(), Box<dyn Error>> {
+  pub async fn uploadClips(&self) -> Result<(), Box<dyn Error>> {
     info!("Uploading local clips to GD");
-    let mut gdFileList: Vec<google_drive3::api::File> = self.gdClient.getFileList().await.unwrap();
-    let stringGDFileList: Vec<String> = gdFileList.iter().map(|f| f.name.clone().unwrap()).collect();
-    let localFileList: Vec<String> = self.getLocalFilesOldestFirst()?;
-    debug!("Local file list {:?}", localFileList);
+    let mut gdFileListDescending            : Vec<google_drive3::api::File> = self.gdClient.getFileList().await.unwrap();
+    let clipsFolderID                       : String                        = gdFileListDescending.iter().find(|f| f.name.clone().unwrap() == "ZeroCam Clips").unwrap().id.clone().unwrap();
+    let mut gdClipsFileListDescending       : Vec<google_drive3::api::File> = gdFileListDescending.clone().iter().filter(|f| f.parents.clone().unwrap().contains(&clipsFolderID)).cloned().collect();
+    let mut stringGDClipsFileListDescending : Vec<String>                   = gdClipsFileListDescending.clone().iter().map(|f| f.name.clone().unwrap()).collect();
+    let mut localFileListDescending         : Vec<String>                   = self.getLocalFilesDescending()?;
+    let mut localFileListNotInGDDescending  : Vec<String>                   = localFileListDescending.clone().iter().filter(|f| !stringGDClipsFileListDescending.contains(f)).cloned().collect();
 
-    let localFileListInGD: Vec<String> = localFileList
-      .iter()
-      .cloned()
-      .filter(|item| stringGDFileList.contains(item))
-      .collect();
-    debug!("Local files in GD: {:?}", localFileListInGD);
+    debug!("Local file list {:?}", &localFileListDescending);
+    debug!("Local file list not in GD{:?}", &localFileListNotInGDDescending);
 
-    for file in localFileListInGD {
-      if let Err(e) = fs::remove_file(self.clipsPath.clone() + &file) {
-        error!("Failed to delete '{}': {}", file, e);
-      } else {
-        info!("Deleted {} from local storage, already exists in GD", file);
+    while (
+      (!localFileListNotInGDDescending.is_empty())
+      && (
+        localFileListNotInGDDescending.first().cloned().unwrap_or_else(|| "".to_string())
+          > stringGDClipsFileListDescending.last().cloned().unwrap_or_else(|| "".to_string())
+      )
+    ){
+      let localFile: &String = localFileListNotInGDDescending.first().unwrap();
+      let localFileSize: i64 = fs::metadata(self.clipsPath.clone() + &localFile).unwrap().len() as i64;
+
+      while localFileSize > self.calculateSpaceAvailable(&clipsFolderID).await? {
+        let oldestGDFile = gdClipsFileListDescending.last().expect("No files left to delete to make space for file in GD!");
+        self.gdClient.deleteFile(oldestGDFile.clone()).await.expect(format!("Error deleting oldest gd file: {}", oldestGDFile.clone().name.unwrap()).as_str());
+
+        info!("Deleted: {} from google drive to make space for : {}", oldestGDFile.clone().name.unwrap(), &localFile);
+
+        gdFileListDescending      = self.gdClient.getFileList().await.unwrap();
+        gdClipsFileListDescending = gdFileListDescending.clone().iter().filter(|f| f.parents.clone().unwrap().contains(&clipsFolderID)).cloned().collect();
       }
+
+      self.gdClient
+        .uploadFile(self.clipsPath.clone() + localFile.clone().as_str(), localFile.clone(), clipsFolderID.clone() )
+        .await?;
+
+      info!("Successfully uploaded to googled drive: {}", localFile.clone().as_str());
+
+      gdFileListDescending            = self.gdClient.getFileList().await.unwrap();
+      gdClipsFileListDescending       = gdFileListDescending.clone().iter().filter(|f| f.parents.clone().unwrap().contains(&clipsFolderID)).cloned().collect();
+      stringGDClipsFileListDescending = gdClipsFileListDescending.clone().iter().map(|f| f.name.clone().unwrap()).collect();
+      localFileListDescending         = self.getLocalFilesDescending()?;
+      localFileListNotInGDDescending  = localFileListDescending.clone().iter().filter(|f| !stringGDClipsFileListDescending.contains(f)).cloned().collect();
     }
 
-    let localFileListNotInGD: Vec<String> = localFileList
-      .iter()
-      .cloned()
-      .filter(|item| !stringGDFileList.contains(item))
-      .collect();
+    info!("Finished backing up all files");
 
-    debug!("Local files not int GD: {:?}", localFileListNotInGD);
-
-    for file in localFileListNotInGD {
-      let fileSize: i64 = fs::metadata(self.clipsPath.clone() + &file).unwrap().len() as i64;
-
-      let clipsFolderID = gdFileList.iter().find(|f| f.name.clone().unwrap() == "ZeroCam Clips").unwrap().id.clone().unwrap();
-      let mut someOldestGDFile:Option<google_drive3::api::File> = self.getOldestGDFile(&clipsFolderID).await?;
-
-      if fileSize < self.calculateSpaceAvailable(&clipsFolderID).await? {
-        self.gdClient.uploadFile(self.clipsPath.clone() + file.clone().as_str(), file.clone(), clipsFolderID, ).await.unwrap();
-        info!("Uploaded {} to GD", file);
-
-        if let Err(e) = fs::remove_file(self.clipsPath.clone() + file.clone().as_str()) {
-          error!("Failed to delete '{}': {}", file, e);
-        } else {
-          info!("Deleted {} from local storage", file);
-        }
-      }
-
-      else if someOldestGDFile.is_some(){
-        while fileSize > self.calculateSpaceAvailable(&clipsFolderID).await? && someOldestGDFile.is_some(){
-          let oldestGDFile = someOldestGDFile.unwrap();
-          if let Err(e) = self.gdClient.deleteFile(oldestGDFile).await {
-            error!("Failed to delete '{}': {}", file, e);
-          } else {
-            info!("Successfully deleted {} from google drive", file);
-          }
-          someOldestGDFile = self.getOldestGDFile(&clipsFolderID).await?;
-        }
-
-        self.gdClient
-          .uploadFile(self.clipsPath.clone() + file.clone().as_str(), file.clone(), clipsFolderID, )
-          .await?;
-        info!("Uploaded {} to GD", file);
-
-        fs::remove_file(self.clipsPath.clone() + file.clone().as_str())?;
-        info!("Deleted {} from local storage", file);
-      }
-
-      else{
-        error!("File not uploaded: No space in GD");
-        debug!("oldest file creation date: {}", someOldestGDFile.clone().unwrap().created_time.unwrap());
-      }
-    }
     Ok(())
-  }
-
-  async fn getOldestGDFile(&self, clipsFolderID: &String) -> Result<(Option<google_drive3::api::File>), Box<dyn Error>>{
-    let gdFileList: Vec<google_drive3::api::File> = self.gdClient.getFileList().await?
-      .iter()
-      .filter(|f| f.parents.clone().unwrap().contains(&clipsFolderID))
-      .cloned().collect();
-
-    let oldestGDFile = gdFileList.iter()
-      .min_by(|a, b| a.created_time.unwrap().cmp(&b.created_time.unwrap()))
-      .cloned();
-    Ok(oldestGDFile)
   }
 
   async fn calculateSpaceAvailable(&self, clipsFolderId: &String) -> Result<i64, Box<dyn Error>> {
@@ -136,16 +96,17 @@ impl GDController {
 
     let storageQuota = self.gdClient.getAbout().await?.1.storage_quota.unwrap();
     let freeGDSpace = storageQuota.limit.unwrap() - storageQuota.usage.unwrap();
-    let spaceAllowedByZeroCam: i64 = self.configFile.g_cloud.limit_gb * 1024 * 1024 * 1024; //1GB
+    let GB:i64 = 1024 * 1024 * 1024;
+    let spaceAllowedByZeroCam: i64 = self.configFile.g_cloud.limit_gb * GB;
     let freeZeroCamSpace = spaceAllowedByZeroCam - gdClipsList.iter().map(|f| f.size.unwrap()).sum::<i64>();
     let spaceAvailable = min(freeZeroCamSpace, freeGDSpace);
 
-    debug!("GD Space Available: {:.3}GB", (freeGDSpace as f64) / ((1024 * 1024 * 1024) as f64));
-    debug!("GD ZeroCam Clips Folder Space Available: {:.3}GB", ((freeZeroCamSpace as f64) / ((1024 * 1024 * 1024) as f64)));
+    debug!("GD Space Available: {:.3}GB", (freeGDSpace as f64) / ((GB) as f64));
+    debug!("GD ZeroCam Clips Folder Space Available: {:.3}GB", ((freeZeroCamSpace as f64) / ((GB) as f64)));
     Ok(spaceAvailable)
   }
 
-  fn getLocalFilesOldestFirst(&self) -> Result<Vec<String>, Box<dyn Error>> {
+  fn getLocalFilesDescending(&self) -> Result<Vec<String>, Box<dyn Error>> {
     let mut files: Vec<_> = fs::read_dir(self.clipsPath.clone())?
       .filter_map(|e| {
         let entry = e.ok()?;
@@ -154,7 +115,7 @@ impl GDController {
         Some((modified, entry.file_name().into_string().unwrap()))
       })
       .collect();
-    files.sort_by_key(|(time, _)| *time);
+    files.sort_by_key(|(time, _)| Reverse(*time));
     Ok(files.into_iter().map(|(_, name)| name).collect())
   }
 }

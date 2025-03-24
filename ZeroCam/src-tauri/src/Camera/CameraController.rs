@@ -2,15 +2,13 @@ use crate::Config;
 use crate::Config::ConfigFile;
 
 use chrono::Utc;
-use log::{debug, info};
-use serde_yaml::Value;
+use log::{info};
 use std::error::Error;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::{env, fs, thread, time};
 use sysinfo::Disks;
 use thread::sleep;
-use tokio::fs::DirEntry;
 
 pub struct CameraController {
   recordingSegmentsPath : String,
@@ -73,7 +71,7 @@ impl CameraController {
     Ok(())
   }
 
-  async fn makePathsForWritingFileAndGetOutputSize(&self) -> Result<(i64), Box<dyn Error>> {
+  async fn makePathsForWritingFileAndGetOutputSize(&self) -> Result<i64, Box<dyn Error>> {
     let mut outputs: Vec<_> = fs::read_dir(self.recordingSegmentsPath.clone())?
       .filter_map(|e| {
         let entry = e.ok()?;
@@ -133,7 +131,7 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
     .arg(mediamtxLocalConfPath)
     .spawn()?;
 
-  Command::new(&mediamtxPath) //start internet stream with security
+  Command::new(&mediamtxPath) //start internet stream with security features
     .stdout(Stdio::null()) //peace
     .stderr(Stdio::null()) //and quiet :)
     .arg(mediamtxInternetConfPath)
@@ -150,26 +148,29 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
   Command::new("ffmpeg")
     .stdout(Stdio::null()) //peace
     .stderr(Stdio::null()) //and quiet :))
-    //Duplicate camera to dummy devices so opencv can use it too
-    .arg("-f")         .arg("video4linux2"                 ) //input format video 4 linux
-    .arg("-framerate") .arg(config.camera_input.fps        )
-    .arg("-video_size").arg(&config.camera_input.resolution)
-    .arg("-i")         .arg("/dev/video0"                  ) //read original source
-    .arg("-codec")     .arg("copy"                         )
-    .arg("-f")         .arg("v4l2"                         ) //input format video 4 linux
-    .arg("/dev/video2"                                     ) //duplicate to video1
-    .arg("-codec")     .arg("copy"                         )
-    .arg("-f")         .arg("v4l2"                         ) //input format video 4 linux
-    .arg("/dev/video3"                                     ) // duplicate to video2
+    // Duplicate camera to dummy devices so opencv can use it too
+    .arg("-f")             .arg("video4linux2"                 ) // demuxer format v4l2
+    .arg("-input_format")  .arg("mjpeg"                        )
+    .arg("-framerate")     .arg(config.camera_input.fps        )
+    .arg("-video_size")    .arg(&config.camera_input.resolution)
+    .arg("-i")             .arg("/dev/video0"                  ) // read original source
+    .arg("-filter_complex").arg("split=2[original][scaled];[scaled]scale=640:360:flags=fast_bilinear[downscaled]") // Create two video outputs from one input
+    .arg("-map")           .arg("[original]"                   )
+    .arg("-pix_fmt")       .arg("yuv420p"                      ) // prevent deprecated pixel format
+    .arg("-f").arg("v4l2") .arg("/dev/video2"                  )
+    .arg("-map")           .arg("[downscaled]"                 )
+    .arg("-pix_fmt")       .arg("yuyv422"                      ) //set format supported by opencv
+    .arg("-f").arg("v4l2") .arg("/dev/video3"                  )
     .spawn()?;
 
-  sleep(time::Duration::from_secs(3)); //wait for loopback to init
+  sleep(time::Duration::from_secs(4)); //wait for loopback to init
 
   Command::new("ffmpeg")
     .stdout(Stdio::null()) //peace
     .stderr(Stdio::null()) //and quiet :))
     //Input
-    .arg("-f")           .arg("v4l2"       ) //input format video 4 linux
+    // .arg("-threads")     .arg("4"          )
+    .arg("-f")           .arg("v4l2"       ) //demuxer format v4l2
     .arg("-i")           .arg("/dev/video2") //input source
     .arg("-pix_fmt")     .arg("yuv420p"    ) //prevent deprecated pixel format
     //Output 1 for  storage
@@ -184,6 +185,14 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
     .arg("-segment_time")    .arg(config.camera_input.clip.segment_size_sec ) //x seconds per segment
     .arg("-segment_wrap")    .arg(config.camera_input.clip.segments         ) //loop after x segments
     .arg(format!("{}output%03d.ts", liveRecordingPath)                      ) //output in numbered files
+    .spawn()?;
+
+  Command::new("ffmpeg")
+    .stdout(Stdio::null()) //peace
+    .stderr(Stdio::null()) //and quiet :))
+    .arg("-f")           .arg("v4l2"       ) //demuxer format v4l2
+    .arg("-i")           .arg("/dev/video2") //input source
+    .arg("-pix_fmt")     .arg("yuv420p"    ) //prevent deprecated pixel format
     //Output 2 for local stream to GUI
     .arg("-f")          .arg("rtsp"                             ) // RTSP container
     .arg("-c:v")        .arg("libx264"                          ) // h.264 encoder
@@ -195,7 +204,7 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
     .arg("rtsp://localhost:8554/stream1"                        ) // RTMP stream to local MediaMTX
     //Output 3 for local stream to Internet
     .arg("-f")        .arg("rtsp"                                  ) // RTSP container
-    .arg("-c:v")      .arg("libx264"                               ) // h.264 encoder
+    .arg("-c:v")      .arg("libx264"                          ) // h.264 encoder with gpu
     .arg("-tune")     .arg("film"                                  ) // Optimise for lower deblocking
     .arg("-preset")   .arg("ultrafast"                             ) // Keep latency low
     .arg("-s")        .arg(config.internet_stream_output.resolution)

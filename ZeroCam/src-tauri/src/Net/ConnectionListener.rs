@@ -3,9 +3,7 @@ use crate::Net::NetworkConnector::ping_google;
 use crate::Net::NetworkController::{evaluateNetworkStateAndHandleChange, initialiseNetworkPriorities};
 use crate::Config::getConfig;
 
-use log::{debug, error, info};
-use std::net::IpAddr;
-use std::sync::atomic::{AtomicBool, Ordering};
+use log::{error, info};
 use std::sync::Arc;
 use std::thread::sleep;
 use std::time::Duration;

@@ -34,6 +34,9 @@
 - ### Install ffmpeg
   ```bash 
     sudo apt install ffmpeg
+    ./configure --enable-shared --enable-libx264 --enable-gpl
+    make
+    make install
   ```
 - ### Install ffmpeg loopback
   - https://docs.omnissa.com/bundle/LinuxDesktops-and-Applications-in-HorizonV2306/page/InstalltheV4L2LoopbackDriver.html
