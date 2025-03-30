@@ -5,11 +5,7 @@ use crate::Config::ConfigFile;
 use chrono::Utc;
 use log::{info, warn};
 use std::error::Error;
-use std::process::Command;
 use std::sync::atomic::{AtomicBool, AtomicI64, Ordering};
-use std::sync::Arc;
-use std::time::Duration;
-use tokio::time::timeout;
 
 pub struct ClipScheduler {
   cameraController: CameraController::CameraController,

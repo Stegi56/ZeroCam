@@ -44,7 +44,7 @@ impl BackupScheduler {
     };
 
     let result = timeout(Duration::from_secs(self.configFile.g_cloud.backup_scheduler_timeout_sec), async {
-      let mut controller = GDController::new().await?;
+      let controller = GDController::new().await?;
       controller.backupNow().await
     }).await??;
 

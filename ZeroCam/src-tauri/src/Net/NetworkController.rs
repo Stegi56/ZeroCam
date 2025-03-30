@@ -19,7 +19,7 @@ pub async fn initialiseNetworkPriorities(config: &ConfigFile) -> Result<(), Box<
   Ok(())
 }
 
-pub async fn evaluateNetworkStateAndHandleChange(previousConnectionState: Vec<String>, config: &ConfigFile) -> Result<(Vec<String>), Box<dyn std::error::Error>> {
+pub async fn evaluateNetworkStateAndHandleChange(previousConnectionState: Vec<String>, config: &ConfigFile) -> Result<Vec<String>, Box<dyn std::error::Error>> {
   let mut currentConnectionState: Vec<String> = getCurrentConnectedNetworks().await?;
   let knownNetworks = getKnownNetworks().await?;
   let availableKnownNonHotspotNetworks = getAvailableNetworks().await?.iter().filter(|ssid| {
@@ -48,7 +48,7 @@ pub async fn evaluateNetworkStateAndHandleChange(previousConnectionState: Vec<St
   }
 
   info!("Completed network refresh");
-  Ok((currentConnectionState))
+  Ok(currentConnectionState)
 }
 
 fn containsHotspotNetwork(mut currentConnectionState: Vec<String>, hotspotNetworks: &Vec<String>) -> bool {

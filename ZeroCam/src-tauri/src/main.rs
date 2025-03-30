@@ -5,7 +5,6 @@ mod GDFiles;
 mod Net;
 mod Telegram;
 
-
 use zerocam_lib::Camera::CameraController::CameraController;
 use zerocam_lib::Camera::ClipScheduler::ClipScheduler;
 use zerocam_lib::Camera::MotionListener::MotionListener;
@@ -19,6 +18,7 @@ use log::info;
 use std::error::Error;
 use std::sync::Arc;
 use std::thread;
+use std::thread::sleep;
 use std::time::Duration;
 use tokio::task::LocalSet;
 use tokio::{signal, task};
@@ -57,6 +57,8 @@ async fn main() {
   let motionListener = MotionListener::new(clipScheduler.clone())
     .await
     .unwrap();
+
+  sleep(Duration::from_secs(5));
   let _motionListenerProcess = tokio::spawn(async move {
     motionListener.run().await;
   });

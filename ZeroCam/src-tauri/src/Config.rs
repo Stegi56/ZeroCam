@@ -17,6 +17,7 @@ pub struct ConfigFile {
 pub struct CameraInput {
   pub resolution: String,
   pub fps       : String,
+  pub encoder   : String,
   pub clip      : Clip
 }
 
@@ -34,7 +35,10 @@ pub struct MotionListener {
   pub sensitivity_inverse : f64,
   pub threshold_sum_kilo  : f64,
   pub frame_delay_millisec: u64,
-  pub trigger_duration    : i8
+  pub trigger_duration    : i8,
+  pub resolution          : String,
+  pub bit_rate            : String,
+  pub fps                 : String
 }
 
 #[derive(Debug, Deserialize)]
@@ -61,18 +65,18 @@ pub struct GCloud {
 }
 
 pub async fn getConfig() -> Result<ConfigFile, Box<dyn Error>> {
-  let yaml_str = std::fs::read_to_string("../../config.yaml")?;
+  let yaml_str = std::fs::read_to_string("../lib/zerocam/config.yaml")?;
   let config: ConfigFile = serde_yaml::from_str(&yaml_str)?;
   Ok(config)
 }
 
 pub async fn getConfigAsString() -> Result<String, Box<dyn Error>> {
-  let yaml_str = std::fs::read_to_string("../../config.yaml")?;
+  let yaml_str = std::fs::read_to_string("../lib/zerocam/config.yaml")?;
   Ok(yaml_str)
 }
 
 pub fn setConfigFromString(configString: String) -> Result<(), Box<dyn Error>> {
-  std::fs::write("../../config.yaml", configString)?;
+  std::fs::write("../lib/zerocam/config.yaml", configString)?;
   info!("Updated config");
   Ok(())
 }

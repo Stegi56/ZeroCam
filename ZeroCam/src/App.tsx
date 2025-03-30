@@ -4,6 +4,7 @@ import "./global.css";
 import Hls from "hls.js"
 import {useEffect, useRef, useState} from "react";
 import {Link} from "react-router-dom";
+import icon64 from './assets/64x64.png';
 
 function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -82,7 +83,7 @@ function App() {
         </div>
 
         <div className="col p-0 m-0 d-flex align-items-center justify-content-center">
-          <img className="img-fluid d-block" src="src-tauri/icons/64x64.png" style={{ width: "3.5em", height: "3.5em"}}/>
+          <img className="img-fluid d-block" src={icon64} style={{ width: "3.5em", height: "3.5em"}}/>
           &nbsp;&nbsp;
           <span className="display-6">ZeroCam</span>
         </div>

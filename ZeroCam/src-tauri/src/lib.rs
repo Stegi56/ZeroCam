@@ -11,7 +11,7 @@ pub use crate::Net::NetworkConnector::getKnownNetworks;
 pub use crate::Config::getConfigAsString;
 pub use crate::Config::setConfigFromString;
 
-use log::{debug, error, info, warn};
+use log::{error};
 use std::process::Command;
 use std::sync::{Arc, OnceLock};
 
@@ -56,7 +56,6 @@ fn feSetConfig(config: String) -> Result<(), String> {
 
 pub fn run(clipScheduler: Arc<ClipScheduler>) {
   tauri::Builder::default()
-    .plugin(tauri_plugin_fs::init())
     .manage(clipScheduler)
     .invoke_handler(tauri::generate_handler![
       feScheduleClip,

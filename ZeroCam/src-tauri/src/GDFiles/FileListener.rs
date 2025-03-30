@@ -33,7 +33,7 @@ impl FileListener {
       }
     })?;
 
-    watcher.watch(Path::new(env::current_dir()?.parent().unwrap().parent().unwrap().join("Clips/").as_path()), RecursiveMode::Recursive)?;
+    watcher.watch(Path::new(env::current_dir()?.parent().unwrap().join("lib/zerocam/Clips/").as_path()), RecursiveMode::Recursive)?;
     info!("File creation listener created");
     Ok(Self { _watcher: watcher })
   }
