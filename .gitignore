@@ -38,3 +38,8 @@ dist-ssr
 /mediamtx.log
 /Clips/*
 /CompVisPlayground/Cargo.lock
+/TokenGenerator/target/*
+/TokenGenerator/.idea/*
+/TokenGenerator/Cargo.lock
+/deps/*
+/builds/*

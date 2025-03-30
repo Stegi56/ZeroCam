@@ -1,17 +1,14 @@
 extern crate google_drive3 as drive3;
-extern crate hyper;
 
-use chrono::{DateTime, Utc};
 use drive3::{hyper_rustls, hyper_util, yup_oauth2, DriveHub};
 use drive3::{Error, Result};
-use google_drive3::api::{About, FileDeleteCall};
+use google_drive3::api::{About, FileList};
 use google_drive3::common::Response;
 use google_drive3::hyper_rustls::HttpsConnector;
-use log::{debug, info};
+use log::{info};
 use mime_guess::{from_path, Mime};
 use std::env;
-use std::io::{Bytes, Cursor};
-use std::path::Path;
+use std::io::{Cursor};
 
 pub struct GDClient {
   hub: DriveHub<HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>>
@@ -19,14 +16,14 @@ pub struct GDClient {
 
 impl GDClient {
   pub async fn new() -> core::result::Result<GDClient, Error> {
-    let secret = yup_oauth2::read_application_secret(env::current_dir()?.parent().unwrap().parent().unwrap().join("secret.json").display().to_string())
+    let secret = yup_oauth2::read_application_secret(env::current_dir()?.parent().unwrap().join("lib/zerocam/secret.json").display().to_string())
       .await?;
 
     let auth = yup_oauth2::InstalledFlowAuthenticator::builder(
       secret,
       yup_oauth2::InstalledFlowReturnMethod::HTTPRedirect,
     )
-      .persist_tokens_to_disk(env::current_dir()?.parent().unwrap().parent().unwrap().join("tokenCache.json").display().to_string())
+      .persist_tokens_to_disk(env::current_dir()?.parent().unwrap().join("lib/zerocam/tokenCache.json").display().to_string())
       .build()
       .await?;
 
@@ -36,7 +33,7 @@ impl GDClient {
           .with_native_roots()?
           .https_or_http()
           .enable_http2()
-          .build(),
+          .build()
       );
 
     info!("Google Drive client created");
@@ -46,16 +43,30 @@ impl GDClient {
     })
   }
 
-  pub async fn getFileList(&self) -> Result<Vec<drive3::api::File>>{
-    let res = self.hub.files()
+  pub async fn getFileListDescending(&self, thrashed: bool) -> Result<Vec<drive3::api::File>>{
+    let mut res: (Response, FileList) = self.hub.files()
       .list()
-      .q("trashed = false")
-      .param("fields", "files(id, name, createdTime, size, mimeType, parents)")
+      .q(format!("trashed = {}", thrashed).as_str())
+      .param("fields", "nextPageToken, files(id, name, createdTime, size, mimeType, parents)")
       .add_scope("https://www.googleapis.com/auth/drive")
       .doit()
       .await?;
 
-    let fileList: Vec<google_drive3::api::File> = res.1.files.unwrap_or_default();
+    let mut fileList: Vec<google_drive3::api::File> = res.1.files.unwrap_or_default();
+
+    while res.1.next_page_token.is_some() {
+      res = self.hub.files()
+        .list()
+        .q(format!("trashed = {}", thrashed).as_str())
+        .page_token(&res.1.next_page_token.unwrap())
+        .param("fields", "nextPageToken, files(id, name, createdTime, size, mimeType, parents)")
+        .add_scope("https://www.googleapis.com/auth/drive")
+        .doit()
+        .await?;
+      fileList.extend(res.1.files.unwrap_or_default());
+    }
+
+    fileList.sort_by(|a, b| b.name.clone().unwrap_or_default().cmp(&a.name.clone().unwrap_or_default()));
     Ok(fileList)
   }
 
@@ -89,7 +100,7 @@ impl GDClient {
       .await
   }
 
-  pub async fn uploadFile(&self, filePath: String, fileName:String, parentID: String) -> Result<Response> {
+  pub async fn uploadFile(&self, filePath: String, fileName: String, parentID: String) -> Result<Response> {
     let mimeType: Mime = from_path(filePath.clone()).first_or_octet_stream();
 
     let file = drive3::api::File {
