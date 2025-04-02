@@ -1,7 +1,7 @@
 telegram_key: 7805646492:AAEfzYJXfaeS9giXfPC1Dwy9efVBHFrGIdA
 camera_input:
   resolution: 1920x1080
-  fps: 30
+  fps: 15
   encoder: libx264
   clip:
     segment_size_sec: 5

@@ -72,7 +72,7 @@ function App() {
           <Link to = {"/settings"}>
             <button type="button" id="settings-button" className="btn btn-outline-light h-100 w-100">
               <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="bi bi-gear" viewBox="0 0 16 16"
-                   style={{ width: "3em", height: "3em" }}>
+                   style={{ width: "4em", height: "4em" }}>
                 <path
                   d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"/>
                 <path
@@ -83,7 +83,7 @@ function App() {
         </div>
 
         <div className="col p-0 m-0 d-flex align-items-center justify-content-center">
-          <img className="img-fluid d-block" src={icon64} style={{ width: "3.5em", height: "3.5em"}}/>
+          <img className="img-fluid d-block" src={icon64} style={{ width: "4em", height: "4em"}}/>
           &nbsp;&nbsp;
           <span className="display-6">ZeroCam</span>
         </div>
@@ -92,7 +92,7 @@ function App() {
         <div className="col d-flex justify-content-center align-items-center">
           <button type="button" id="window-button" className="btn btn-outline-light h-100 w-100" onClick={toggleFullscreen}>
             <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="bi bi-aspect-ratio"
-                 viewBox="0 0 16 16" style={{ width: "3em", height: "3em" }}>
+                 viewBox="0 0 16 16" style={{ width: "4em", height: "4em" }}>
               <path
                 d="M0 3.5A1.5 1.5 0 0 1 1.5 2h13A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 12.5zM1.5 3a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5z"/>
               <path
@@ -103,15 +103,15 @@ function App() {
 
       </div>
       <div className="row my-auto me-0">
-        <div className="col w-50">
+        <div className="col-8">
           <div className="ratio ratio-16x9">
             <video ref={videoRef} id="video" className="object-fit-contain" autoPlay muted></video>
           </div>
         </div>
 
-        <div className="col ratio ratio-16x9 flex-column d-grid">
+        <div className="col-4 ps-0 pe-0 flex-column d-grid">
           <button type="button" className="btn btn-outline-light me-0 d-flex align-items-center justify-content-center" id="clip-button" onClick={scheduleClip}>
-            <span className="display-3">CLIP </span>
+            <span className="display-2">CLIP </span>
             <div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="bi bi-camera-video"
                  viewBox="0 0 16 16" style={{width:"4.5em", height:"4.5em"}}>
@@ -127,7 +127,7 @@ function App() {
         {parked? (
           <button type="button" id="park-button"
                   className="pt-2 pb-2 btn btn-primary btn-outline-light d-flex align-items-center justify-content-center" onClick={() => makeParked(false)}>
-            <span className="display-4 weight-bold">PARKED</span>
+            <span className="display-3 weight-bold">PARKED</span>
             <div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
             <svg className="bi bi-car-front-fill" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
                  viewBox="0 0 16 16" style={{width:"3em", height:"3em"}}>
@@ -138,7 +138,7 @@ function App() {
         ) : (
           <button type="button" id="park-button"
                   className="pt-2 pb-2 btn btn-secondary btn-outline-light d-flex align-items-center justify-content-center" onClick={() => makeParked(true)}>
-            <span className="display-4 weight-bold">DRIVING</span>
+            <span className="display-3 weight-bold">DRIVING</span>
             <div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
             <svg className="bi bi-car-front-fill" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
                  viewBox="0 0 16 16" style={{width:"3em", height:"3em"}}>
