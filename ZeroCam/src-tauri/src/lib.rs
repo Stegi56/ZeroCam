@@ -14,6 +14,7 @@ pub use crate::Config::setConfigFromString;
 use log::{error};
 use std::process::Command;
 use std::sync::{Arc, OnceLock};
+use tauri::Manager;
 
 static previousNetworkState: OnceLock<Vec<String>> = OnceLock::new();
 
@@ -56,6 +57,12 @@ fn feSetConfig(config: String) -> Result<(), String> {
 
 pub fn run(clipScheduler: Arc<ClipScheduler>) {
   tauri::Builder::default()
+    .setup(|app| {
+      if let Some(window) = app.get_window("main"){
+        window.set_fullscreen(true)?;
+      }
+      Ok(())
+    })
     .manage(clipScheduler)
     .invoke_handler(tauri::generate_handler![
       feScheduleClip,

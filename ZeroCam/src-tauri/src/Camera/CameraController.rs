@@ -163,6 +163,8 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
 
     //output for storage
     .arg("-vf")              .arg("format=gray"                             )
+    .arg("-pix_fmt")         .arg("yuv420p"                                 )
+    .arg("-c:v")             .arg(&config.camera_input.encoder              )
     .arg("-b:v")             .arg("20M"                                     ) //bitrate
     .arg("-f")               .arg("segment"                                 ) //output in segments
     .arg("-force_key_frames").arg(format!("expr:gte(t,n_forced*{})"
@@ -174,7 +176,8 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
 
     //Output for local stream to Internet
     .arg("-f")        .arg("rtsp"                                  ) // RTSP container
-    .arg("-c:v")      .arg(&config.camera_input.encoder            ) // h.264 encoder with gpu
+    .arg("-pix_fmt")  .arg("yuv420p"                               )
+    .arg("-c:v")      .arg("libx264"                               ) // h.264 encoder with gpu
     .arg("-preset")   .arg("ultrafast"                             ) // Keep latency low
     .arg("-s")        .arg(config.internet_stream_output.resolution)
     .arg("-b:v")      .arg(config.internet_stream_output.bit_rate  )
@@ -183,7 +186,8 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
 
     //Output for local stream to GUI
     .arg("-f")          .arg("rtsp"                             ) // RTSP container
-    .arg("-c:v")        .arg(&config.camera_input.encoder       ) // h.264 encoder
+    .arg("-pix_fmt")    .arg("yuv420p"                          )
+    .arg("-c:v")        .arg("libx264"                          ) // h.264 encoder
     .arg("-preset")     .arg("ultrafast"                        ) // Keep latency low
     .arg("-s")          .arg(config.gui_stream_output.resolution)
     .arg("-b:v")        .arg(config.gui_stream_output.bit_rate  )
@@ -191,9 +195,8 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
     .arg("rtsp://localhost:8554/stream1"                        ) // RTMP stream to local MediaMTX
 
     //output 2 for opencv
-    .arg("-filter_complex").arg("split=1[v1];[v1]scale=640:360[v1g]") // Create clone for opencv
+    .arg("-filter_complex").arg("split=1[v1];[v1]format=gray,scale=640:360[v1g]") // Create clone for opencv
     .arg("-map")           .arg("[v1g]"                             )
-    .arg("-pix_fmt")       .arg("gray"                              ) //set format supported by opencv
     .arg("-b:v")           .arg(&config.motion_listener.bit_rate    )
     .arg("-r")             .arg(&config.motion_listener.fps         )
     .arg("-f").arg("v4l2") .arg("/dev/video2"                       )
