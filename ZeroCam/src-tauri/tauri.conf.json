@@ -14,6 +14,7 @@
       {
         "title": "ZeroCam",
         "maximized": true,
+        "fullscreen": true,
         "width": 800,
         "height": 480
       }

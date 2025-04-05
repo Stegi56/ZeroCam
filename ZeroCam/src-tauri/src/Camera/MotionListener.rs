@@ -46,33 +46,35 @@ impl MotionListener {
     let mut startFrame = Mat::default();
     cap.read(&mut startFrame).unwrap();
 
+    let mut startFrameGray = Mat::default();
+    cvt_color(&mut startFrame, &mut startFrameGray, COLOR_BGR2GRAY.into(),0).unwrap();
 
     let mut frame = Mat::default();
     loop{
       if WATCHING.load(Ordering::SeqCst) {
         sleep(Duration::from_millis(self.config.motion_listener.frame_delay_millisec));
-        cap.read(&mut frame).unwrap();
+        cap.read(&mut frame).expect("error reading");
 
-        sleep(Duration::from_millis(100));
-        cap.read(&mut frame).unwrap();
+        let mut frameGray = Mat::default();
+        cvt_color(&mut frame, &mut frameGray, COLOR_BGR2GRAY.into(),0).unwrap();
 
-        let mut frameBlurred1 = Mat::default();
-        gaussian_blur(&mut frame, &mut frameBlurred1, Size::new(15, 15), 0., 0., 0.into()).unwrap();
+        let mut frameBlurred = Mat::default();
+        gaussian_blur(&mut frameGray, &mut frameBlurred, Size::new(15, 15), 0., 0., 0.into()).expect("error bluring");
 
         let mut claheImg = Mat::default();
         let clahe = create_clahe(15f64, Size::new(1, 1));
-        clahe.unwrap().apply(&mut frameBlurred1, &mut  claheImg).unwrap();
+        clahe.expect("error creating clahe").apply(&mut frameBlurred, &mut  claheImg).expect("error appyling clahe");
 
         let mut difference = Mat::default();
-        absdiff(&mut claheImg, &mut startFrame, &mut difference).unwrap();
+        absdiff(&mut claheImg, &mut startFrameGray, &mut difference).expect("error getting difference");
 
         let mut differenceBinned = Mat::default();
-        threshold(&mut difference, &mut differenceBinned, self.config.motion_listener.sensitivity_inverse, 255f64, THRESH_BINARY.into()).unwrap();
+        threshold(&mut difference, &mut differenceBinned, self.config.motion_listener.sensitivity_inverse, 255f64, THRESH_BINARY.into()).expect("error binning difference");
 
-        let differenceTotal: f64 = sum_elems(&mut differenceBinned.clone()).unwrap().iter().sum();
+        let differenceTotal: f64 = sum_elems(&mut differenceBinned.clone()).expect("error summing elems").iter().sum();
         debug!("Difference Total: {}", differenceTotal);
 
-        startFrame = claheImg;
+        startFrameGray = claheImg;
 
         if differenceTotal < (self.config.motion_listener.threshold_sum_kilo * 1000.0){
           if DURATION.load(Ordering::Relaxed) > 0{

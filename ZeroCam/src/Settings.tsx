@@ -58,7 +58,7 @@ function Settings(){
     const yamlContents = dump(config)
     await invoke("feSetConfig", {config: yamlContents})
 
-    invoke("feRebootSystem")
+    await invoke("feRebootSystem")
   }
 
   function extractField(fieldName: string): String{

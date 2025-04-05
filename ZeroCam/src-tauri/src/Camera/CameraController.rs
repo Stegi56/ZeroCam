@@ -194,12 +194,12 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
     .arg("-r")          .arg(config.gui_stream_output.fps       )
     .arg("rtsp://localhost:8554/stream1"                        ) // RTMP stream to local MediaMTX
 
-    //output 2 for opencv
-    .arg("-filter_complex").arg("split=1[v1];[v1]format=gray,scale=640:360[v1g]") // Create clone for opencv
-    .arg("-map")           .arg("[v1g]"                             )
-    .arg("-b:v")           .arg(&config.motion_listener.bit_rate    )
-    .arg("-r")             .arg(&config.motion_listener.fps         )
-    .arg("-f").arg("v4l2") .arg("/dev/video2"                       )
+    //output for opencv
+    .arg("-pix_fmt")       .arg("gray"                           )
+    .arg("-s")             .arg(config.motion_listener.resolution)
+    .arg("-r")             .arg(config.motion_listener.fps       )
+    .arg("-b:v")           .arg(&config.motion_listener.bit_rate )
+    .arg("-f").arg("v4l2") .arg("/dev/video2"                    )
     .spawn()?;
   Ok(())
 }
