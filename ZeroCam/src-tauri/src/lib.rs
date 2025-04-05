@@ -35,9 +35,7 @@ fn feGetParked() -> bool {
 
 #[tauri::command]
 fn feRebootSystem() {
-  if Command::new("sudo").arg("reboot").spawn().is_err() {
-    error!("Failed to reboot the system");
-  }
+  Command::new("sudo").arg("reboot").spawn().expect("failed to reboot");
 }
 
 #[tauri::command]
@@ -57,12 +55,6 @@ fn feSetConfig(config: String) -> Result<(), String> {
 
 pub fn run(clipScheduler: Arc<ClipScheduler>) {
   tauri::Builder::default()
-    .setup(|app| {
-      if let Some(window) = app.get_window("main"){
-        window.set_fullscreen(true)?;
-      }
-      Ok(())
-    })
     .manage(clipScheduler)
     .invoke_handler(tauri::generate_handler![
       feScheduleClip,
@@ -70,7 +62,8 @@ pub fn run(clipScheduler: Arc<ClipScheduler>) {
       feGetConfig,
       feSetConfig,
       feGetParked,
-      feGetKnownNetworks
+      feGetKnownNetworks,
+      feRebootSystem
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

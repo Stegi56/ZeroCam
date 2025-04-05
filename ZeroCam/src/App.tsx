@@ -65,6 +65,14 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    async function fixHorizontalLines(){ //force re-render to prevent tauri horizontal lines bug
+      await toggleFullscreen();
+      await toggleFullscreen();
+    }
+    fixHorizontalLines();
+  }, []);
+
   return (
     <main className="container-fluid">
       <div className="row mb-2 pt-2 ml-3 d-flex align-items-center justify-content-between">

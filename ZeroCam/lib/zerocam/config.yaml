@@ -8,7 +8,7 @@ camera_input:
     segments: 2
     timer_before_clip_sec: 5
     cooldown_sec: 5
-    disk_full_buffer_gb: 100
+    disk_full_buffer_gb: 2
 motion_listener:
   sensitivity_inverse: 40
   threshold_sum_kilo: 250
