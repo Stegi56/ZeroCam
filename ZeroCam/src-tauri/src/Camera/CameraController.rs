@@ -195,7 +195,7 @@ pub async fn startCameraAndStream() -> Result<(), Box<dyn Error>> {
     .arg("rtsp://localhost:8554/stream1"                        ) // RTMP stream to local MediaMTX
 
     //output for opencv
-    .arg("-pix_fmt")       .arg("gray"                           )
+    .arg("-pix_fmt")       .arg("yuv420p"                        )
     .arg("-s")             .arg(config.motion_listener.resolution)
     .arg("-r")             .arg(config.motion_listener.fps       )
     .arg("-b:v")           .arg(&config.motion_listener.bit_rate )
