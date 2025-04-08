@@ -5,7 +5,7 @@ camera_input:
   encoder: libx264
   clip:
     segment_size_sec: 5
-    segments: 2
+    segments: 5
     timer_before_clip_sec: 5
     cooldown_sec: 5
     disk_full_buffer_gb: 2
@@ -19,7 +19,7 @@ motion_listener:
   fps: 10
 gui_stream_output:
   resolution: 1920x1080
-  bit_rate: 20k
+  bit_rate: 80k
   fps: 10
 internet_stream_output:
   url: https://zerocam.stegi56.com/stream1/
@@ -32,4 +32,3 @@ g_cloud:
   limit_gb: 14
   backup_scheduler_timeout_sec: 360
 hotspot_networks:
-  - 5G COVID-19 tower

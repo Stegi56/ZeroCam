@@ -8,6 +8,8 @@ use notify::{
 use std::env;
 use std::path::Path;
 use std::sync::Arc;
+use std::thread::sleep;
+use std::time::Duration;
 use tokio::runtime::Handle;
 
 pub struct FileListener {
@@ -23,6 +25,7 @@ impl FileListener {
         Ok(event) if matches!(event.kind, EventKind::Create(_)) => {
           let scheduler = backupScheduler.clone();
           runtimeHandle.spawn(async move {
+            sleep(Duration::from_secs(5));
             if let Err(e) = scheduler.scheduleBackup().await {
               error!("Backup failed: {}", e);
             }
