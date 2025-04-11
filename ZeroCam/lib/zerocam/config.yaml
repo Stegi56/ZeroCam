@@ -12,7 +12,7 @@ camera_input:
 motion_listener:
   sensitivity_inverse: 40
   threshold_sum_kilo: 250
-  frame_delay_millisec: 100
+  frame_delay_millisec: 120
   trigger_duration: 5
   resolution: 640x360
   bit_rate: 100k

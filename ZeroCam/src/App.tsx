@@ -1,3 +1,4 @@
+
 import {invoke} from "@tauri-apps/api/core";
 import {getCurrentWindow} from "@tauri-apps/api/window";
 import "./global.css";
@@ -63,14 +64,6 @@ function App() {
     return () => {
       hls.destroy();
     };
-  }, []);
-
-  useEffect(() => {
-    async function fixHorizontalLines(){ //force re-render to prevent tauri horizontal lines bug
-      await toggleFullscreen();
-      await toggleFullscreen();
-    }
-    fixHorizontalLines();
   }, []);
 
   return (

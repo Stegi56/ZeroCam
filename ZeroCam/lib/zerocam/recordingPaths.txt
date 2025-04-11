@@ -1,5 +1,3 @@
-file 'LiveRecording/output001.ts'
-file 'LiveRecording/output002.ts'
 file 'LiveRecording/output003.ts'
 file 'LiveRecording/output004.ts'
 file 'LiveRecording/output000.ts'

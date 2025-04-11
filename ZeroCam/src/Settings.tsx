@@ -81,7 +81,7 @@ function Settings(){
               <td className="h3 " id={n}>{n}</td>
               <td>
                 <div className="form-check">
-                  {config?.hotspot_networks.includes(n) ?(
+                  {config?.hotspot_networks?.includes(n) ?(
                     <input className="form-check-input" style={{width:"2em", height:"2em"}} type="checkbox" value="checked" id={`hotspot-checkbox-${n}`} defaultChecked={true}></input>
                   ) : (
                     <input className="form-check-input" style={{width:"2em", height:"2em"}} type="checkbox" value="" id={`hotspot-checkbox-${n}`} defaultChecked={false}></input>
