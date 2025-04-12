@@ -99,8 +99,12 @@
     - ![Pasted image (12).png](DocsResources/Pasted%20image%20%2812%29.png)
   - Setup launch on boot
     - https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/
-
-- #### (First time) In terminal from /ZeroCam
+    
+- #### (First time) In terminal from /ZeroCam/
+  - ```bash 
+      npm install
+    ```
+- #### (First time) In terminal from /ZeroCam/lib/zerocam/
   - ```bash 
       ./TokenGeneratorScript
     ```
