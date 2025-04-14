@@ -1,0 +1,45 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+#Secret shh
+/secret.json
+/Cargo.lock
+/target/
+/tokenCache.json
+/package-lock.json
+/LiveRecording/
+/mediamtx_v1.11.3_linux_amd64/
+/telegramKey.txt
+/server.key
+/server.crt
+/server.csr
+/mediamtx.log
+/Clips/*
+/CompVisPlayground/Cargo.lock
+/TokenGenerator/target/*
+/TokenGenerator/.idea/*
+/TokenGenerator/Cargo.lock
+/deps/*
+/builds/*
