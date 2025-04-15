@@ -1,6 +1,7 @@
-# ZeroCam Developer Guide for Ubuntu v24 LTS
+# ZeroCam Developer Guide for Ubuntu v24 LTS and Raspberry Pi 4B
 
-## Dependencies
+## Dependencies Installation
+#### Skip this if you are using the RaspberryPi image
 - ### Install Rust
   - https://www.rust-lang.org/tools/install
     - ```bash 
@@ -23,8 +24,11 @@
     make
     make install
   ```
-- ### Install ffmpeg loopback
+- ### Install v4l2 loopback
   - https://docs.omnissa.com/bundle/LinuxDesktops-and-Applications-in-HorizonV2306/page/InstalltheV4L2LoopbackDriver.html
+  - On raspberry pi this dependency will break upon building, you will need open `v4l2loopback.c` file 
+    after cloning from github and add `#include <linux/string.h>` at the top and convert all usage 
+    of `strlcpy` to `strncpy` save and then build
 - ### Install opencv4
   - https://docs.opencv.org/4.x/d7/d9f/tutorial_linux_install.html
 - ### Install other open cv dependencies
@@ -34,6 +38,11 @@
       sudo apt-get install libsdl2-2.0-0
     ```
     
+# Raspberry Pi Image installation
+#### Skip this step if you did manual dependency installation
+Follow this guide https://www.raspberrypi.com/documentation/computers/getting-started.html.
+Instead of selecting an official Raspberry Pi OS, use ZeroCam.img provided.
+
 - # Setup
 - ### Google Drive
   - Create new google account
@@ -50,7 +59,7 @@
   - Rename the file to secret.json
       - ![Pasted image (7).png](DocsResources/Pasted%20image%20%287%29.png)
   - 
-- ### Disable password for sudo actions
+- ### Disable password for sudo actions (developer setup)
   - https://askubuntu.com/questions/147241/execute-sudo-without-password
 - ### (Option 1) Install playit.gg to prevent need for port forwarding for each wifi source
   - Create https://playit.gg/ account and verify email (guest will not work)
@@ -86,6 +95,16 @@
     - ![Pasted image (8).png](DocsResources/Pasted%20image%20%288%29.png)
     
 ## Run
+
+- #### Raspberry Pi 4B
+  - Raspberry pi opencv api is different for arm64 architecture, if you want to build a new version of the project
+    you will need to move it onto a raspberry pi and build it there. You will also need to modify add these lines for a 
+    successful arm64 build.
+    - ![Pasted image (10).png](DocsResources/Pasted%20image%20%2810%29.png)
+    - ![Pasted image (11).png](DocsResources/Pasted%20image%20%2811%29.png)
+    - ![Pasted image (12).png](DocsResources/Pasted%20image%20%2812%29.png)
+  - Setup launch on boot
+    - https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/
 
 - #### (First time) In terminal from /ZeroCam
   - ```bash 
