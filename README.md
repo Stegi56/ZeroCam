@@ -51,12 +51,12 @@ Instead of selecting an official Raspberry Pi OS, use [ZeroCam.img](https://driv
       - ![Screenshot from 2025-02-14 14-27-10.png](DocsResources/Screenshot%20from%202025-02-14%2014-27-10.png)
   - Download the file
       - ![Screenshot from 2025-02-11 17-19-05.png](DocsResources/Screenshot%20from%202025-02-11%2017-19-05.png)
-  - Move it into your ZeroCam/Zerocam/lib or zerocam_0.0.0_amd64/data/usr/lib/zerocam built folder
+  - Move it into your ZeroCam/Zerocam/lib or ZeroCam R Pi/ZeroCam/ZeroCam/lib or zerocam_0.0.0_amd64/data/usr/lib/zerocam built folder
       - ![Screenshot from 2025-02-11 17-22-13.png](DocsResources/Screenshot%20from%202025-02-11%2017-22-13.png)
   - Rename the file to secret.json
       - ![Pasted image (7).png](DocsResources/Pasted%20image%20%287%29.png)
   
-- ### [Disable password for sudo actions](https://askubuntu.com/questions/147241/execute-sudo-without-password) (developer setup)
+- ### [Disable password for sudo actions (skip this if you are using .img)](https://askubuntu.com/questions/147241/execute-sudo-without-password) (developer setup)
 - ### (Option 1) Install playit.gg to prevent need for port forwarding for each wifi source
   - Create https://playit.gg/ account and verify email (guest will not work)
   - ```bash
@@ -98,7 +98,7 @@ Instead of selecting an official Raspberry Pi OS, use [ZeroCam.img](https://driv
     - ![Pasted image (11).png](DocsResources/Pasted%20image%20%2811%29.png)
     - ![Pasted image (12).png](DocsResources/Pasted%20image%20%2812%29.png)
 
-- ### [Setup launch on boot](https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/)
+- ### [Setup launch on boot (skip this if you are using .img)](https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/)
 
 - ### (First time) In terminal from /ZeroCam
   - ```bash 
