@@ -90,7 +90,7 @@ Instead of selecting an official Raspberry Pi OS, use [ZeroCam.img](https://driv
     
 ## Run
 
-- #### Raspberry Pi 4B
+- #### Raspberry Pi 4B (skip this if you used .img)
   - Raspberry pi opencv api is different for arm64 architecture, if you want to build a new version of the project
     you will need to move it onto a raspberry pi and build it there. You will also need to modify add these lines for a 
     successful arm64 build.
