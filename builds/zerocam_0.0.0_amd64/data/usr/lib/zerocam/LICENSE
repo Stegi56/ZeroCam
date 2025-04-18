@@ -1,0 +1,29 @@
+ZeroCam Personal Use License
+
+Copyright (c) 2025 Joel Staugaitis (56rolsj@gmail.com)
+All rights reserved.
+
+License Terms
+Permission is hereby granted, free of charge, to any individual person obtaining a copy of this software and associated documentation files (the "Software"), to use the Software for personal, non-profit purposes, and to fork and modify the Software, subject to the following conditions:
+
+Personal and Non-Profit Use Only: 
+The Software may only be used by individuals for personal, non-commercial, and non-profit purposes. Any commercial use, distribution, or incorporation into a for-profit project is expressly prohibited without prior written permission from the copyright holder, Joel Staugaitis (56rolsj@gmail.com).
+
+Forking and Modifications: 
+Individuals may fork and edit the Software, provided that:
+Any forked or modified version of the Software remains subject to this license in its entirety.
+The copyright notice and this license are included in all copies or substantial portions of the Software, including forked versions.
+The forked or modified Software is not used for commercial or for-profit purposes.
+
+No Redistribution: 
+Individuals may not redistribute the Software or any forked/modified versions outside of personal use or sharing via a public fork on GitHub (or similar platforms), provided the fork retains this license and copyright notice.
+Attribution: Any use, fork, or modification of the Software must retain the above copyright notice and this permission notice in all copies or substantial portions of the Software.
+
+No Warranty: 
+The Software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, or noninfringement. In no event shall the copyright holder be liable for any claim, damages, or other liability arising from the use of the Software.
+Termination: Any use of the Software that violates these terms will result in the automatic termination of the permissions granted under this license.
+
+Contact
+For inquiries regarding additional permissions or commercial use, contact Joel Staugaitis at 56rolsj@gmail.com.
+
+This project uses FFmpeg under the LGPLv2.1 - the project owner does not own FFmpeg.

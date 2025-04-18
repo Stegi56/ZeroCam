@@ -1,0 +1,9 @@
+Package: zerocam
+Version: 0.0.0
+Architecture: amd64
+Installed-Size: 138793
+Maintainer: Joel Staugaitis <56rolsj@gmail.com>
+Priority: optional
+Depends: libwebkit2gtk-4.1-0, libgtk-3-0
+Description: No subscription DashCam
+ (none)

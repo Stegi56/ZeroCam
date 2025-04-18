@@ -1,0 +1,8 @@
+[Desktop Entry]
+Categories=
+Comment=No subscription DashCam
+Exec=ZeroCam
+Icon=ZeroCam
+Name=zerocam
+Terminal=false
+Type=Application

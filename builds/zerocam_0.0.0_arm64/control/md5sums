@@ -1,0 +1,16 @@
+e24c2426e7a1b642d81e7fc742139a09  usr/share/icons/hicolor/128x128/apps/ZeroCam.png
+c5f881a4e67cdf75c14a5435de4ce8e7  usr/share/icons/hicolor/32x32/apps/ZeroCam.png
+e98ed047ed49ae22958aa1623e46dd38  usr/share/icons/hicolor/256x256@2/apps/ZeroCam.png
+9057f049c6c7df57ac1408c4e95414a4  usr/share/applications/zerocam.desktop
+6503511829d762729a97c0fe84fca58d  usr/bin/ZeroCam
+e39085aa040e6c52f054cc35c71da528  usr/lib/zerocam/MediaMTX/mediamtx
+cd066c60c66481a96735ebd967a6f1bd  usr/lib/zerocam/MediaMTX/mediamtx-internet.yml
+d41d8cd98f00b204e9800998ecf8427e  usr/lib/zerocam/MediaMTX/mediamtx.log
+62b8c1b9ac9b27e4a5da1257a68f4b83  usr/lib/zerocam/MediaMTX/mediamtx-local.yml
+77fd2623bd5398430be5ce60489c2e81  usr/lib/zerocam/MediaMTX/LICENSE
+d41d8cd98f00b204e9800998ecf8427e  usr/lib/zerocam/Clips/.gitkeep
+d41d8cd98f00b204e9800998ecf8427e  usr/lib/zerocam/LiveRecording/.gitkeep
+67a96b070ad2c027891c2a190fd9df5d  usr/lib/zerocam/recordingPaths.txt
+508193364b1c178339f38b67cebe13da  usr/lib/zerocam/config.yaml
+6dfe94b8c5e4e8e1b1732a34c8322566  usr/lib/zerocam/LICENSE
+349c8919009007d4084c1c8f45fc7260  usr/lib/zerocam/TokenGenerator

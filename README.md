@@ -78,7 +78,7 @@ Instead of selecting an official Raspberry Pi OS, use [ZeroCam.img](https://driv
     ```
 - ### Setup Telegram Bot
   - On Telegram search "BotFather"
-    - ![Pasted image.png](../DocsResources/Pasted%20image.png)
+    - ![Pasted image.png](DocsResources/Pasted%20image.png)
   - Start
   - ```/newbot```
   - ```ZeroCam```
