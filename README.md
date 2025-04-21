@@ -39,7 +39,7 @@
 #### Skip this step if you did manual dependency installation
 Follow this [guide](https://www.raspberrypi.com/documentation/computers/getting-started.html).
 
-Instead of selecting an official Raspberry Pi OS, use [ZeroCam.img](https://drive.google.com/file/d/1BIejUz5ZD8Vhm-GXycodxOA2WPyHpwxg/view?usp=drive_link) provided.
+Instead of selecting an official Raspberry Pi OS, use [ZeroCam.img](https://drive.google.com/file/d/1BIejUz5ZD8Vhm-GXycodxOA2WPyHpwxg/view?usp=sharing) provided.
 
 - # Setup
 - ### Google Drive
